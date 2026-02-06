@@ -1,0 +1,25 @@
+services:
+  test-mariadb:
+    image: mariadb:latest
+    container_name: invar-test-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - test_mariadb_data:/var/lib/mysql
+      - ./init/init_mariadb_superheroes.sql:/docker-entrypoint-initdb.d/init_mariadb_superheroes.sql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  test_mariadb_data:
+    driver: local
