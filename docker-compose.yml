@@ -1,4 +1,20 @@
 services:
+  mcp-server:
+    build:
+      context: ./mcp
+      dockerfile: Dockerfile
+    container_name: invar-mcp-server
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: jdbc:mysql://${MARIADB_HOST}:${MARIADB_PORT}/${MARIADB_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MARIADB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - test-mariadb
+
   test-mariadb:
     image: mariadb:latest
     container_name: invar-test-mariadb
