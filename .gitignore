@@ -32,3 +32,6 @@ replay_pid*
 .env.test.local
 .env.production
 .env.production.local
+
+# OS Files
+.DS_Store
