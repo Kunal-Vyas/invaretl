@@ -1,19 +1,19 @@
 package com.invartek.invaretl.mcp.tools;
 
-import org.springaicommunity.mcp.annotation.McpTool;
-import org.springaicommunity.mcp.annotation.McpToolParam;
-import org.springframework.stereotype.Component;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class CalculatorTools {
 
-    @McpTool(name = "add", description = "Add two numbers")
+    @Tool(name = "add", description = "Add two numbers")
     public double add(
-        @McpToolParam(
+        @ToolParam(
             description = "First number",
             required = true
         ) final double a,
-        @McpToolParam(
+        @ToolParam(
             description = "Second number",
             required = true
         ) final double b
@@ -21,13 +21,13 @@ public class CalculatorTools {
         return a + b;
     }
 
-    @McpTool(name = "subtract", description = "Subtract two numbers")
+    @Tool(name = "subtract", description = "Subtract two numbers")
     public double subtract(
-        @McpToolParam(
+        @ToolParam(
             description = "First number",
             required = true
         ) final double a,
-        @McpToolParam(
+        @ToolParam(
             description = "Second number",
             required = true
         ) final double b
@@ -35,13 +35,13 @@ public class CalculatorTools {
         return a - b;
     }
 
-    @McpTool(name = "multiply", description = "Multiply two numbers")
+    @Tool(name = "multiply", description = "Multiply two numbers")
     public double multiply(
-        @McpToolParam(
+        @ToolParam(
             description = "First number",
             required = true
         ) final double a,
-        @McpToolParam(
+        @ToolParam(
             description = "Second number",
             required = true
         ) final double b
@@ -49,13 +49,13 @@ public class CalculatorTools {
         return a * b;
     }
 
-    @McpTool(name = "divide", description = "Divide two numbers")
+    @Tool(name = "divide", description = "Divide two numbers")
     public double divide(
-        @McpToolParam(
+        @ToolParam(
             description = "Dividend",
             required = true
         ) final double dividend,
-        @McpToolParam(
+        @ToolParam(
             description = "Divisor",
             required = true
         ) final double divisor
