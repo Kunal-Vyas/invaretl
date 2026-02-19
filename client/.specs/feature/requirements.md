@@ -1,7 +1,7 @@
-# Skeleton Feature Requirements
+# Feature Requirements
 
 ## Overview
-[Brief description of the skeleton feature and its purpose]
+[Brief description of the feature and its purpose]
 
 ## Functional Requirements
 

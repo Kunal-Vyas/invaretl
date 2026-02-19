@@ -1,4 +1,4 @@
-# Skeleton Feature Tasks
+# Feature Tasks
 
 ## Development Tasks
 

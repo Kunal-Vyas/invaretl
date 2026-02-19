@@ -1,4 +1,4 @@
-# Skeleton Feature Design
+# Feature Design
 
 ## Architecture Overview
 [High-level architectural diagram or description]
