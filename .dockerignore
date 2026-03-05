@@ -1,0 +1,7 @@
+.git
+.gradle
+ui/node_modules
+ui/dist
+server/build
+*.md
+LICENSE

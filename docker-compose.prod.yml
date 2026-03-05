@@ -1,0 +1,78 @@
+version: '3.9'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: invaretl-app
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - DATABASE_URL=${DATABASE_URL:-jdbc:postgresql://db:5432/invaretl}
+      - POSTGRES_DB=${POSTGRES_DB:-invaretl}
+      - POSTGRES_USER=${POSTGRES_USER:-invartek}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - invaretl-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: invaretl-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-invaretl}
+      - POSTGRES_USER=${POSTGRES_USER:-invartek}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-invartek} -d ${POSTGRES_DB:-invaretl}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - invaretl-network
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: invaretl-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - invaretl-network
+    profiles: ["redis"]  # Only start if --profile redis is specified
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  invaretl-network:
+    driver: bridge

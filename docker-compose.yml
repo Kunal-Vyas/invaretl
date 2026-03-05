@@ -1,41 +1,20 @@
+version: '3.8'
+
 services:
-  mcp-server:
-    build:
-      context: ./mcp
-      dockerfile: Dockerfile
-    container_name: invar-mcp-server
-    restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      SPRING_DATASOURCE_URL: jdbc:mysql://${MARIADB_HOST}:${MARIADB_PORT}/${MARIADB_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MARIADB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD}
+  app:
+    build: .
     ports:
       - "8080:8080"
-    depends_on:
-      - test-mariadb
-
-  test-mariadb:
-    image: mariadb:latest
-    container_name: invar-test-mariadb
-    restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${MARIADB_DATABASE}
-      MARIADB_USER: ${MARIADB_USER}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
-    ports:
-      - "3306:3306"
-    volumes:
-      - test_mariadb_data:/var/lib/mysql
-      - ./init/init_mariadb_superheroes.sql:/docker-entrypoint-initdb.d/init_mariadb_superheroes.sql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - db
 
-volumes:
-  test_mariadb_data:
-    driver: local
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=invaretl
+      - POSTGRES_USER=invartek
+      - POSTGRES_PASSWORD=invartek
+    ports:
+      - "5432:5432"
