@@ -3,20 +3,6 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   application:
     name: invaretl-server
-  datasource:
-    url: jdbc:h2:mem:invaretl;DB_CLOSE_DELAY=-1
-    driverClassName: org.h2.Driver
-    username: sa
-    password: 
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: update
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
 ---
 # Development profile
 spring:
@@ -25,9 +11,9 @@ spring:
       on-profile: dev
   datasource:
     url: jdbc:h2:mem:invaretl;DB_CLOSE_DELAY=-1
-    driverClassName: org.h2.Driver
+    driver-class-name: org.h2.Driver
     username: sa
-    password: 
+    password:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
@@ -37,6 +23,30 @@ spring:
     console:
       enabled: true
       path: /h2-console
+  flyway:
+    enabled: false
+
+---
+# Test profile
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:invaretl-test;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  h2:
+    console:
+      enabled: false
+  flyway:
+    enabled: false
 
 ---
 # Production profile
@@ -47,19 +57,30 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://db:5432/invaretl}
     username: ${POSTGRES_USER:invartek}
-    password: ${POSTGRES_PASSWORD:invartek}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      # validate: Flyway owns the schema; Hibernate just checks it matches the entities
+      ddl-auto: validate
     show-sql: false
   h2:
     console:
       enabled: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
 
 ---
-# Actuator configuration for all profiles
+# Actuator — applied to all profiles
 management:
   endpoints:
     web:
@@ -68,9 +89,22 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      probes:
+        enabled: true
   health:
     db:
+      enabled: true
+    livenessstate:
+      enabled: true
+    readinessstate:
       enabled: true
 
 server:
   port: 8080
+  shutdown: graceful
+
+# Enable virtual threads (Java 21+)
+spring:
+  threads:
+    virtual:
+      enabled: true

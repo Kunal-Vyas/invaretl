@@ -4,8 +4,9 @@ WORKDIR /ui
 
 # Copy package files first for better caching
 COPY ui/package*.json ./
-# Install dependencies using npm ci for reproducible builds
-RUN npm ci --only=production
+# Install ALL dependencies (including devDependencies) needed for the build
+# vue-tsc, vite, tailwindcss, @vitejs/plugin-vue are all devDependencies
+RUN npm ci
 
 # Copy source code
 COPY ui/ ./
