@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        maven { url = uri("https://plugins.gradle.org/m2/") }
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.github.node-gradle:gradle-node-plugin:7.0.2")
+    }
+}
+
 plugins {
     id("java")
     id("com.github.node-gradle.node") version "7.0.2"
@@ -14,8 +24,8 @@ allprojects {
 }
 
 node {
-    version.set("20.11.1")
-    npmVersion.set("10.2.4")
+    version.set("20.19.0")
+    npmVersion.set("10.8.2")
     download.set(true)
     nodeProjectDir.set(file("${project.projectDir}/ui"))
 }
@@ -24,20 +34,29 @@ node {
 //   - Installs exact versions from package-lock.json (no implicit upgrades)
 //   - Fails fast if package.json and package-lock.json are out of sync
 //   - Matches what the Dockerfile and CI pipeline both use
-val npmCi = tasks.register<com.github.node_gradle.node.npm.task.NpmTask>("npmCi") {
-    args.set(listOf("ci"))
+val npmTaskClass = Class.forName("com.github.gradle.node.npm.task.NpmTask")
+
+@Suppress("UNCHECKED_CAST")
+val npmCi = tasks.register("npmCi", npmTaskClass as Class<org.gradle.api.Task>) {
+    val argsProperty = this::class.java.getMethod("getArgs")
+    @Suppress("UNCHECKED_CAST")
+    val argsListProp = argsProperty.invoke(this) as org.gradle.api.provider.ListProperty<String>
+    argsListProp.set(listOf("ci"))
     inputs.file(file("${project.projectDir}/ui/package-lock.json"))
     inputs.file(file("${project.projectDir}/ui/package.json"))
     outputs.dir(file("${project.projectDir}/ui/node_modules"))
-    // Only re-run when package-lock.json or package.json actually change
     outputs.upToDateWhen {
         file("${project.projectDir}/ui/node_modules").exists()
     }
 }
 
-val npmBuild = tasks.register<com.github.node_gradle.node.npm.task.NpmTask>("npmBuild") {
+@Suppress("UNCHECKED_CAST")
+val npmBuild = tasks.register("npmBuild", npmTaskClass as Class<org.gradle.api.Task>) {
     dependsOn(npmCi)
-    args.set(listOf("run", "build"))
+    val argsProperty = this::class.java.getMethod("getArgs")
+    @Suppress("UNCHECKED_CAST")
+    val argsListProp = argsProperty.invoke(this) as org.gradle.api.provider.ListProperty<String>
+    argsListProp.set(listOf("run", "build"))
     inputs.dir(file("${project.projectDir}/ui/src"))
     inputs.file(file("${project.projectDir}/ui/package.json"))
     inputs.file(file("${project.projectDir}/ui/vite.config.ts"))
@@ -52,7 +71,9 @@ val copyUiToStatic = tasks.register<Copy>("copyUiToStatic") {
 }
 
 project(":server") {
-    tasks.named("processResources") {
-        dependsOn(copyUiToStatic)
+    afterEvaluate {
+        tasks.named("processResources") {
+            dependsOn(copyUiToStatic)
+        }
     }
 }

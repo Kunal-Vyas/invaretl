@@ -1,6 +1,96 @@
 #!/bin/bash
 set -euo pipefail
 
+# ---------------------------------------------------------------------------
+# Java 21 auto-detection
+#
+# The Kotlin DSL (bundled in Gradle 8.x) cannot parse the Java 25 version
+# string, causing "IllegalArgumentException: 25.0.1" at configuration time.
+# We need a Java 21 JDK to run Gradle itself (the :server subproject still
+# compiles to Java 21 bytecode via its toolchain declaration, regardless of
+# which JDK runs Gradle).
+#
+# Strategy (first match wins):
+#   1. JAVA_HOME already set and points to a Java 21 JDK  -> keep it
+#   2. A sibling jdk-21* directory next to the current JAVA_HOME           -> use it
+#   3. Common installation roots on Windows/macOS/Linux                    -> scan
+#   4. `java -version` is already 21                                       -> keep it
+#   5. Give up and let the user know what to fix
+# ---------------------------------------------------------------------------
+_find_java21() {
+    # Helper: print the JDK home if `java` inside it reports version 21
+    local candidate="$1"
+    local java_bin="${candidate}/bin/java"
+    if [ -x "${java_bin}" ]; then
+        local ver
+        ver=$("${java_bin}" -version 2>&1 | head -1)
+        if echo "${ver}" | grep -qE '"21(\.|")'; then
+            echo "${candidate}"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+_resolve_java_home() {
+    # 1. Current JAVA_HOME is already Java 21?
+    if [ -n "${JAVA_HOME:-}" ]; then
+        if _find_java21 "${JAVA_HOME}" > /dev/null 2>&1; then
+            return 0   # already correct, nothing to do
+        fi
+    fi
+
+    # 2. Scan siblings of current JAVA_HOME (e.g. /c/Programs/jdk-21*)
+    if [ -n "${JAVA_HOME:-}" ]; then
+        local parent
+        parent="$(dirname "${JAVA_HOME}")"
+        for d in "${parent}"/jdk-21* "${parent}"/jdk21* "${parent}"/java-21* "${parent}"/java21*; do
+            [ -d "${d}" ] || continue
+            local found
+            found=$(_find_java21 "${d}" 2>/dev/null) && export JAVA_HOME="${found}" && return 0
+        done
+    fi
+
+    # 3. Well-known roots
+    local roots=(
+        "/c/Programs"
+        "/c/Program Files/Java"
+        "/c/Program Files/Eclipse Adoptium"
+        "/c/Program Files/Microsoft"
+        "/usr/lib/jvm"
+        "/usr/local/lib/jvm"
+        "/Library/Java/JavaVirtualMachines"
+    )
+    for root in "${roots[@]}"; do
+        [ -d "${root}" ] || continue
+        for d in "${root}"/jdk-21* "${root}"/jdk21* "${root}"/java-21* "${root}"/temurin-21* "${root}"/zulu-21*; do
+            [ -d "${d}" ] || continue
+            # macOS layout: Contents/Home
+            local candidate="${d}"
+            [ -d "${d}/Contents/Home" ] && candidate="${d}/Contents/Home"
+            local found
+            found=$(_find_java21 "${candidate}" 2>/dev/null) && export JAVA_HOME="${found}" && return 0
+        done
+    done
+
+    # 4. System java happens to be 21?
+    if command -v java > /dev/null 2>&1; then
+        local ver
+        ver=$(java -version 2>&1 | head -1)
+        if echo "${ver}" | grep -qE '"21(\.|")'; then
+            return 0
+        fi
+    fi
+
+    # 5. Nothing found – warn but continue (build will likely fail with a
+    #    clear Kotlin/Gradle error message pointing the user at the real issue)
+    print_warning "Could not locate a Java 21 JDK. Gradle requires Java 21 due to a"
+    print_warning "Kotlin DSL parser limitation with Java 25 version strings."
+    print_warning "Set JAVA_HOME to a Java 21 JDK and re-run this script."
+}
+
+_resolve_java_home
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -139,14 +229,22 @@ run_tests() {
     echo "Running tests..."
 
     echo "Running backend tests..."
-    ./gradlew test
+    ./gradlew :server:test
 
     echo ""
     echo "Running frontend tests..."
     cd ui
     # Use test:ci (vitest run --coverage) so the process exits after a single
     # pass and does not block in interactive watch mode.
-    npm run test:ci
+    # Prefer the system-installed node/npm over whatever Gradle downloaded so
+    # that the Node version satisfies the Vite 7 engine requirement (>=20.19).
+    if command -v npm > /dev/null 2>&1; then
+        npm run test:ci
+    else
+        print_error "npm not found on PATH – cannot run frontend tests"
+        cd ..
+        exit 1
+    fi
     cd ..
 
     echo ""

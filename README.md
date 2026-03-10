@@ -9,6 +9,9 @@ A comprehensive multi-language, multi-container data transformation platform tha
 git clone https://github.com/invartek/invaretl.git
 cd invaretl
 
+# Copy environment template and fill in your values
+cp .env.example .env
+
 # Start development environment
 ./scripts/dev.sh dev
 ```
@@ -17,7 +20,11 @@ This will start:
 - PostgreSQL database (port 5432)
 - Spring Boot backend (port 8080)
 - Vue.js frontend (port 5173)
-- H2 Console (http://localhost:8080/h2-console)
+
+Once running, open:
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:8080
+- **H2 Console:** http://localhost:8080/h2-console (dev profile only)
 
 ## 📋 Tech Stack
 
@@ -43,45 +50,75 @@ This will start:
 ## 🛠️ Development
 
 ### Prerequisites
-- Java 21+
-- Node.js 20+
-- Docker & Docker Compose
-- Gradle 8+
+
+| Tool | Required version | Notes |
+|------|-----------------|-------|
+| **Java** | 21 (exactly) | The Gradle Kotlin DSL bundled in Gradle 8.x cannot parse Java 22+ version strings. Install a JDK 21 and ensure `JAVA_HOME` points to it, or let the script auto-detect it. |
+| **Node.js** | ≥ 20.19 | Vite 7 and several frontend dependencies require Node 20.19+. Node 24 LTS works fine. |
+| **npm** | ≥ 10.8 | Bundled with Node 20.19+. |
+| **Docker** | any recent | Required for the PostgreSQL container. |
+| **Docker Compose** | v2 (`docker compose`) | The script uses the `docker compose` (v2) subcommand, not the standalone `docker-compose` binary. |
+
+### Environment file
+
+The application reads secrets and connection strings from a `.env` file in the project root. Create it before starting anything:
+
+```bash
+cp .env.example .env
+# Open .env and set at least POSTGRES_PASSWORD
+```
+
+The `.env` file is git-ignored and never committed.
 
 ### Local Development
 
-#### Using the convenience script (Recommended):
+#### Using the convenience script (recommended)
+
 ```bash
 ./scripts/dev.sh dev
 ```
 
-#### Manual setup:
+The script will:
+1. Check that Docker, Java, and Node are available.
+2. Auto-detect a Java 21 JDK and set `JAVA_HOME` if needed.
+3. Create `.env` from `.env.example` if it does not exist yet.
+4. Start the PostgreSQL container and poll until it is ready.
+5. Start the Spring Boot backend (`./gradlew :server:bootRun`) in the background.
+6. Start the Vite dev server (`npm run dev` inside `ui/`) in the background.
+7. Print the service URLs and block until you press **Ctrl+C**, which cleanly shuts everything down.
+
+#### Manual setup (three terminals)
+
 ```bash
-# Start database
+# Terminal 1 – database
 docker compose -f docker-compose.yml up -d db
 
-# Start backend (terminal 1)
-./gradlew :server:bootRun
+# Terminal 2 – backend (requires Java 21 on JAVA_HOME)
+JAVA_HOME=/path/to/jdk-21 ./gradlew :server:bootRun
 
-# Start frontend (terminal 2)
+# Terminal 3 – frontend
 cd ui && npm run dev
 ```
 
 ### Testing
+
 ```bash
-# Run all tests
+# Run all tests (backend + frontend) via the script
 ./scripts/dev.sh test
 
-# Or separately:
-./gradlew test              # Backend tests
-cd ui && npm test            # Frontend tests
+# Run separately:
+JAVA_HOME=/path/to/jdk-21 ./gradlew :server:test   # Backend (JUnit)
+cd ui && npm run test:ci                             # Frontend (Vitest + coverage)
 ```
+
+> **Note on `JAVA_HOME`:** `./scripts/dev.sh` auto-detects a Java 21 JDK, so you do not need to set it manually when using the script. For direct `./gradlew` invocations, set `JAVA_HOME` explicitly if your shell's default Java is not 21.
 
 ## 🐳 Docker & Deployment
 
 ### Development Environment
 ```bash
-docker compose -f docker-compose.yml up -d
+# Database only (the script starts backend and frontend natively)
+docker compose -f docker-compose.yml up -d db
 ```
 
 ### Production Environment
@@ -101,11 +138,15 @@ docker build -t invaretl:latest .
 
 ## 🌍 Environment Configuration
 
-The application supports multiple profiles:
+The application supports multiple Spring profiles:
 
-- **dev** (default): Development with H2 database
-- **prod**: Production with PostgreSQL
-- **test**: Test environment with isolated H2
+| Profile | Database | When used |
+|---------|----------|-----------|
+| `dev` (default) | H2 in-memory | Local development via `bootRun` |
+| `test` | H2 in-memory | Automated tests (`./gradlew :server:test`) |
+| `prod` | PostgreSQL | Docker / production deployment |
+
+The active profile is controlled by `SPRING_PROFILES_ACTIVE` in `.env` or the `docker-compose` files.
 
 ## 📊 Architecture
 
@@ -214,24 +255,58 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Troubleshooting
 
-### Common Issues
+### Java version errors (`IllegalArgumentException: 25.0.1`)
 
-1. **Database connection errors**:
-   - Check environment variables in .env
-   - Ensure PostgreSQL is running
+The Kotlin DSL bundled in Gradle 8.x cannot parse Java 22+ version strings. If you see this error when running `./gradlew` directly, set `JAVA_HOME` to a Java 21 JDK:
 
-2. **Port conflicts**:
-   - Check if ports 5173, 8080, 5432 are free
-   - Modify ports in docker-compose files
+```bash
+export JAVA_HOME=/path/to/jdk-21
+./gradlew :server:test
+```
 
-3. **Build failures**:
-   - Clear Docker cache: `docker system prune`
-   - Update dependencies: `./gradlew build --refresh-dependencies`
+`./scripts/dev.sh` auto-detects a Java 21 JDK and handles this for you.
+
+### Node.js engine warnings / Vite build failure
+
+Vite 7 requires Node **≥ 20.19**. If you see `crypto.hash is not a function` or `EBADENGINE` warnings, upgrade Node:
+
+```bash
+node --version   # must be >= 20.19
+```
+
+### Missing `.env` file
+
+Running `./scripts/dev.sh dev` or `prod` without a `.env` will auto-create one from `.env.example`, then pause with a warning. Fill in at minimum `POSTGRES_PASSWORD` before continuing.
+
+### Database connection errors
+
+```bash
+# Check the container is running and healthy
+docker compose ps
+
+# Tail PostgreSQL logs
+docker compose logs -f db
+```
+
+### Port conflicts
+
+If ports 5173, 8080, or 5432 are already in use:
+- Override `APP_PORT` and `DB_PORT` in `.env`
+- Or stop the conflicting process before starting
+
+### Stale build artifacts
+
+```bash
+./scripts/dev.sh clean          # wipes Gradle outputs, node_modules, Docker images
+./gradlew :server:test --rerun  # force a full test re-run without cleaning
+```
 
 ### Health Checks
 
-- Application health: `curl http://localhost:8080/actuator/health`
-- Database health: `docker compose ps`
+```bash
+curl http://localhost:8080/actuator/health   # application liveness
+docker compose ps                            # container status
+```
 
 ## 📚 Documentation
 
