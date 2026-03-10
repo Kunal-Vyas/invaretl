@@ -2,9 +2,47 @@
 
 This document provides definitive instructions, architecture constraints, and style guidelines for all AI coding agents (such as OpenCode, Cursor, and GitHub Copilot) operating within the InvarETL repository. Agents must read and strictly adhere to these instructions before making code modifications.
 
-## Multi-Build Docker Compose Application Guidelines
+---
 
-### Architecture Overview
+## Project Overview
+
+InvarETL is a "Project Manager in a Box" that leverages AI agents to build software. Instead of writing code, you manage Specs (requirements). The platform then handles the heavy lifting while giving you a real-time "Price Tag" for every button and feature you add.
+
+**Application Name:** `invaretl`
+**Description:** A multi-service application orchestrated with Docker Compose.
+**Primary Language(s):** Java, Spring, Gradle, Node JS, VueJS, Javascript
+**Repository:** [<!-- e.g., https://github.com/org/repo -->](https://github.com/Kunal-Vyas/invaretl)
+
+---
+
+## Repository Structure
+
+```
+.
+├── docker-compose.yml          # Main Compose file
+├── docker-compose.override.yml # Local dev overrides (optional)
+├── docker-compose.prod.yml     # Production overrides (optional)
+├── .env.example                # Example environment variables
+├── AGENTS.md                   # This file
+│
+├── services/
+│   ├── api/                    # Backend API service
+│   │   ├── Dockerfile
+│   │   └── src/
+│   ├── worker/                 # Background worker service
+│   │   ├── Dockerfile
+│   │   └── src/
+│   └── frontend/               # Frontend service
+│       ├── Dockerfile
+│       └── src/
+│
+├── nginx/                      # Reverse proxy config
+├── scripts/                    # Helper scripts (seed, migrate, etc.)
+└── volumes/                    # Persistent volume mounts (if any)
+```
+---
+
+## Architecture Overview
 
 InvarETL is designed as a multi-service application orchestrated through Docker Compose. The application consists of several interconnected services that communicate through defined networks and volumes. Each service may have its own build context and requirements.
 
@@ -281,6 +319,7 @@ docker compose inspect <service-name>
 # Check resource usage
 docker stats
 ```
+---
 
 ## Agent-Specific Guidelines
 
