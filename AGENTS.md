@@ -6,7 +6,7 @@ This document provides definitive instructions, architecture constraints, and st
 
 ## Project Overview
 
-InvarETL is a "Project Manager in a Box" that leverages AI agents to build software. Instead of writing code, you manage Specs (requirements). The platform then handles the heavy lifting while giving you a real-time "Price Tag" for every button and feature you add.
+InvarETL is a A comprehensive multi-language, multi-container data transformation platform that turns complex data pipelines into a visual, drag-and-drop experience. It works as a "Project Manager in a Box" that leverages AI agents to build data applications. Instead of writing code, you manage Specs (requirements). The platform then handles the heavy lifting while giving you a real-time "Price Tag" for every data transformation and feature you add.
 
 **Application Name:** `invaretl`
 **Description:** A multi-service application orchestrated with Docker Compose.

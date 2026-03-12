@@ -1,6 +1,6 @@
 # InvarETL - No-Code Data Fabric Platform
 
-A comprehensive multi-language, multi-container data transformation platform that turns complex data pipelines into a visual, drag-and-drop experience. If you can use Canva or Zapier, you can build an enterprise-grade data pipeline.
+InvarETL is a A comprehensive multi-language, multi-container data transformation platform that turns complex data pipelines into a visual, drag-and-drop experience. It works as a "Project Manager in a Box" that leverages AI agents to build data applications. Instead of writing code, you manage Specs (requirements). The platform then handles the heavy lifting while giving you a real-time "Price Tag" for every data transformation and feature you add.
 
 ## 🚀 Quick Start
 
