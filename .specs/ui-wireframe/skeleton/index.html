@@ -1,0 +1,1915 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>InvarETL</title>
+        <style>
+            /* =====================================================================
+       CSS Custom Properties — Light (default) & Dark themes
+       ===================================================================== */
+            :root {
+                --bg-primary: #f5f2eb;
+                --bg-surface: #ffffff;
+                --bg-sidebar: #efefea;
+                --text-primary: #0a0a0f;
+                --text-muted: #6b6b78;
+                --border: #d0cdc4;
+                --accent: #e84a1f;
+
+                --nav-height: 48px;
+                --sidebar-w: 220px;
+                --sidebar-w-sm: 56px;
+
+                --font-sans:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                --font-mono: Consolas, "Courier New", monospace;
+            }
+
+            [data-theme="dark"] {
+                --bg-primary: #0a0a0f;
+                --bg-surface: #14141c;
+                --bg-sidebar: #111118;
+                --text-primary: #f5f2eb;
+                --text-muted: #9191a0;
+                --border: #2a2a38;
+            }
+
+            /* =====================================================================
+       Reset / Base
+       ===================================================================== */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: var(--font-sans);
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                min-height: 100vh;
+            }
+
+            button {
+                font-family: inherit;
+                cursor: pointer;
+                border: none;
+                background: none;
+            }
+
+            button:focus-visible,
+            a:focus-visible {
+                outline: 2px solid var(--accent);
+                outline-offset: 2px;
+                border-radius: 3px;
+            }
+
+            /* =====================================================================
+       Top Navigation Bar
+       ===================================================================== */
+            header#topnav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--bg-surface);
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                padding: 0 16px;
+                gap: 12px;
+                z-index: 200;
+            }
+
+            /* Hamburger — mobile only */
+            #hamburger {
+                display: none;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: 6px;
+                color: var(--text-primary);
+            }
+            #hamburger:hover {
+                background: var(--bg-primary);
+            }
+
+            /* Wordmark */
+            .wordmark {
+                font-size: 1.05rem;
+                letter-spacing: -0.01em;
+                color: var(--text-primary);
+                user-select: none;
+                flex-shrink: 0;
+            }
+            .wordmark span {
+                font-weight: 700;
+                color: var(--accent);
+            }
+
+            /* Center spacer */
+            .nav-spacer {
+                flex: 1;
+            }
+
+            /* Right section */
+            .nav-right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            #theme-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: 6px;
+                color: var(--text-primary);
+            }
+            #theme-toggle:hover {
+                background: var(--bg-primary);
+            }
+
+            .avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: var(--accent);
+                color: #fff;
+                font-size: 0.72rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                user-select: none;
+                flex-shrink: 0;
+            }
+
+            /* =====================================================================
+       Layout — sidebar + main
+       ===================================================================== */
+            #app {
+                display: flex;
+                padding-top: var(--nav-height);
+                min-height: 100vh;
+            }
+
+            /* =====================================================================
+       Sidebar
+       ===================================================================== */
+            aside#sidebar {
+                position: fixed;
+                top: var(--nav-height);
+                left: 0;
+                bottom: 0;
+                width: var(--sidebar-w);
+                background: var(--bg-sidebar);
+                border-right: 1px solid var(--border);
+                display: flex;
+                flex-direction: column;
+                transition: width 0.2s ease;
+                overflow: hidden;
+                z-index: 100;
+            }
+
+            aside#sidebar.collapsed {
+                width: var(--sidebar-w-sm);
+            }
+
+            /* Nav list */
+            nav#sidenav {
+                flex: 1;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding: 8px 0;
+            }
+
+            .nav-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 16px;
+                width: 100%;
+                color: var(--text-muted);
+                font-size: 0.875rem;
+                white-space: nowrap;
+                border-left: 3px solid transparent;
+                transition:
+                    background 0.15s,
+                    color 0.15s,
+                    border-color 0.15s;
+                text-align: left;
+            }
+            .nav-item:hover {
+                background: var(--bg-primary);
+                color: var(--text-primary);
+            }
+            .nav-item.active {
+                border-left-color: var(--accent);
+                background: color-mix(in srgb, var(--accent) 10%, transparent);
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+
+            .nav-item .nav-icon {
+                width: 20px;
+                height: 20px;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .nav-item .nav-label {
+                overflow: hidden;
+                transition:
+                    opacity 0.15s,
+                    width 0.15s;
+            }
+            aside#sidebar.collapsed .nav-label {
+                opacity: 0;
+                width: 0;
+            }
+
+            /* Sidebar bottom — settings + collapse toggle */
+            .sidebar-bottom {
+                border-top: 1px solid var(--border);
+                padding: 4px 0;
+            }
+
+            #sidebar-toggle {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 16px;
+                width: 100%;
+                color: var(--text-muted);
+                font-size: 0.875rem;
+                white-space: nowrap;
+                transition:
+                    background 0.15s,
+                    color 0.15s;
+                text-align: left;
+            }
+            #sidebar-toggle:hover {
+                background: var(--bg-primary);
+                color: var(--text-primary);
+            }
+
+            #sidebar-toggle .nav-icon {
+                width: 20px;
+                height: 20px;
+                flex-shrink: 0;
+            }
+            #sidebar-toggle .toggle-label {
+                overflow: hidden;
+                transition:
+                    opacity 0.15s,
+                    width 0.15s;
+            }
+            aside#sidebar.collapsed #sidebar-toggle .toggle-label {
+                opacity: 0;
+                width: 0;
+            }
+
+            /* =====================================================================
+       Main content
+       ===================================================================== */
+            main#content {
+                margin-left: var(--sidebar-w);
+                flex: 1;
+                padding: 32px;
+                transition: margin-left 0.2s ease;
+                min-height: calc(100vh - var(--nav-height));
+            }
+
+            aside#sidebar.collapsed ~ main#content {
+                margin-left: var(--sidebar-w-sm);
+            }
+
+            .page-section {
+                display: none;
+            }
+            .page-section.active {
+                display: block;
+            }
+
+            /* Page title */
+            .page-title {
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin-bottom: 24px;
+            }
+
+            /* =====================================================================
+       Dashboard — summary cards
+       ===================================================================== */
+            .cards-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 16px;
+                margin-bottom: 32px;
+            }
+
+            .card {
+                background: var(--bg-surface);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 20px 18px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .card-icon {
+                width: 32px;
+                height: 32px;
+                color: var(--text-muted);
+            }
+
+            .card-value {
+                font-size: 1.75rem;
+                font-weight: 700;
+                font-family: var(--font-mono);
+                line-height: 1;
+            }
+
+            .card-label {
+                font-size: 0.78rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            /* =====================================================================
+       Tables
+       ===================================================================== */
+            .table-wrap {
+                background: var(--bg-surface);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .table-wrap h2 {
+                font-size: 0.9rem;
+                font-weight: 600;
+                padding: 16px 20px 12px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.855rem;
+            }
+
+            thead th {
+                text-align: left;
+                padding: 10px 20px;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-muted);
+                border-bottom: 1px solid var(--border);
+            }
+
+            tbody td {
+                padding: 12px 20px;
+                border-bottom: 1px solid var(--border);
+            }
+            tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            /* Skeleton bar */
+            .skel {
+                display: inline-block;
+                height: 12px;
+                border-radius: 6px;
+                background: var(--border);
+            }
+
+            /* Status badges */
+            .badge {
+                display: inline-block;
+                padding: 2px 9px;
+                border-radius: 12px;
+                font-size: 0.72rem;
+                font-weight: 600;
+                font-family: var(--font-mono);
+            }
+            .badge-running {
+                background: color-mix(in srgb, #22c55e 15%, transparent);
+                color: #16a34a;
+            }
+            .badge-idle {
+                background: color-mix(
+                    in srgb,
+                    var(--text-muted) 15%,
+                    transparent
+                );
+                color: var(--text-muted);
+            }
+            .badge-error {
+                background: color-mix(in srgb, var(--accent) 15%, transparent);
+                color: var(--accent);
+            }
+
+            /* =====================================================================
+       Pipelines toolbar
+       ===================================================================== */
+            .toolbar {
+                margin-bottom: 20px;
+            }
+
+            .btn-accent {
+                background: var(--accent);
+                color: #fff;
+                padding: 8px 18px;
+                border-radius: 6px;
+                font-size: 0.875rem;
+                font-weight: 600;
+                transition: opacity 0.15s;
+            }
+            .btn-accent:hover {
+                opacity: 0.88;
+            }
+
+            /* =====================================================================
+       Data Sources — connector card grid
+       ===================================================================== */
+            .connector-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+
+            .connector-card {
+                background: var(--bg-surface);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 22px 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .connector-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                background: var(--bg-primary);
+                border: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-muted);
+            }
+
+            .connector-name {
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+
+            .connector-link {
+                font-size: 0.8rem;
+                color: var(--accent);
+                text-decoration: none;
+                font-weight: 500;
+            }
+            .connector-link:hover {
+                text-decoration: underline;
+            }
+
+            /* =====================================================================
+       Transforms list
+       ===================================================================== */
+            .transform-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .transform-item {
+                background: var(--bg-surface);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 18px 20px;
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .transform-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 8px;
+                background: var(--bg-primary);
+                border: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-muted);
+                flex-shrink: 0;
+            }
+
+            .transform-info {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .transform-name {
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+            .transform-desc {
+                font-size: 0.82rem;
+                color: var(--text-muted);
+            }
+
+            /* =====================================================================
+       Projects placeholder
+       ===================================================================== */
+            .projects-placeholder {
+                background: var(--bg-surface);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 48px 32px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+                color: var(--text-muted);
+                text-align: center;
+            }
+
+            .projects-placeholder svg {
+                opacity: 0.35;
+            }
+            .projects-placeholder p {
+                font-size: 0.9rem;
+            }
+
+            /* =====================================================================
+       Settings form
+       ===================================================================== */
+            .settings-group {
+                background: var(--bg-surface);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+
+            .settings-group h2 {
+                font-size: 0.95rem;
+                font-weight: 600;
+                margin-bottom: 18px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .form-row {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                margin-bottom: 16px;
+            }
+            .form-row:last-child {
+                margin-bottom: 0;
+            }
+
+            .form-row label {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+            .form-row input {
+                font-family: inherit;
+                font-size: 0.875rem;
+                padding: 8px 12px;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                width: 100%;
+                max-width: 360px;
+            }
+            .form-row input:disabled {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+
+            .btn-save {
+                background: var(--accent);
+                color: #fff;
+                padding: 8px 20px;
+                border-radius: 6px;
+                font-size: 0.875rem;
+                font-weight: 600;
+                margin-top: 4px;
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            /* =====================================================================
+       Mobile overlay backdrop
+       ===================================================================== */
+            #sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.45);
+                z-index: 99;
+            }
+
+            /* =====================================================================
+       Responsive
+       ===================================================================== */
+            @media (max-width: 1023px) {
+                /* Collapsed by default at 768–1023px */
+                aside#sidebar {
+                    width: var(--sidebar-w-sm);
+                }
+                main#content {
+                    margin-left: var(--sidebar-w-sm);
+                }
+            }
+
+            @media (max-width: 767px) {
+                #hamburger {
+                    display: flex;
+                }
+
+                aside#sidebar {
+                    width: var(--sidebar-w);
+                    transform: translateX(calc(-1 * var(--sidebar-w) - 4px));
+                    transition:
+                        transform 0.25s ease,
+                        width 0.2s ease;
+                }
+
+                aside#sidebar.mobile-open {
+                    transform: translateX(0);
+                }
+
+                #sidebar-backdrop.visible {
+                    display: block;
+                }
+
+                main#content {
+                    margin-left: 0 !important;
+                    padding: 20px 16px;
+                }
+
+                .connector-grid {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .connector-grid {
+                    grid-template-columns: 1fr;
+                }
+                .cards-row {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- =========================================================
+     Top Navigation Bar
+     ========================================================= -->
+        <header id="topnav">
+            <button id="hamburger" aria-label="Open navigation menu">
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                >
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+
+            <div class="wordmark">Invar<span>ETL</span></div>
+
+            <div class="nav-spacer"></div>
+
+            <div class="nav-right">
+                <button id="theme-toggle" aria-label="Toggle light/dark theme">
+                    <!-- Sun icon (shown in dark mode) -->
+                    <svg
+                        id="icon-sun"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        style="display: none"
+                    >
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <!-- Moon icon (shown in light mode) -->
+                    <svg
+                        id="icon-moon"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path
+                            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                        />
+                    </svg>
+                </button>
+
+                <div class="avatar" role="img" aria-label="User KV">KV</div>
+            </div>
+        </header>
+
+        <!-- Sidebar backdrop (mobile) -->
+        <div id="sidebar-backdrop" aria-hidden="true"></div>
+
+        <div id="app">
+            <!-- =======================================================
+       Left Sidebar
+       ======================================================= -->
+            <aside id="sidebar" aria-label="Main navigation">
+                <!-- Main nav items -->
+                <nav id="sidenav" role="navigation">
+                    <button
+                        class="nav-item active"
+                        data-section="dashboard"
+                        aria-current="page"
+                    >
+                        <span class="nav-icon" aria-hidden="true">
+                            <!-- Dashboard / grid icon -->
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <rect x="3" y="3" width="7" height="7" />
+                                <rect x="14" y="3" width="7" height="7" />
+                                <rect x="14" y="14" width="7" height="7" />
+                                <rect x="3" y="14" width="7" height="7" />
+                            </svg>
+                        </span>
+                        <span class="nav-label">Dashboard</span>
+                    </button>
+
+                    <button class="nav-item" data-section="projects">
+                        <span class="nav-icon" aria-hidden="true">
+                            <!-- Folder icon -->
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path
+                                    d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                                />
+                            </svg>
+                        </span>
+                        <span class="nav-label">Projects</span>
+                    </button>
+
+                    <button class="nav-item" data-section="data-sources">
+                        <span class="nav-icon" aria-hidden="true">
+                            <!-- Database icon -->
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                            </svg>
+                        </span>
+                        <span class="nav-label">Data Sources</span>
+                    </button>
+
+                    <button class="nav-item" data-section="pipelines">
+                        <span class="nav-icon" aria-hidden="true">
+                            <!-- Pipeline / flow icon -->
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <polyline
+                                    points="22 12 18 12 15 21 9 3 6 12 2 12"
+                                />
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pipelines</span>
+                    </button>
+
+                    <button class="nav-item" data-section="transforms">
+                        <span class="nav-icon" aria-hidden="true">
+                            <!-- Shuffle / transform icon -->
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <polyline points="16 3 21 3 21 8" />
+                                <line x1="4" y1="20" x2="21" y2="3" />
+                                <polyline points="21 16 21 21 16 21" />
+                                <line x1="15" y1="15" x2="21" y2="21" />
+                            </svg>
+                        </span>
+                        <span class="nav-label">Transforms</span>
+                    </button>
+                </nav>
+
+                <!-- Bottom-pinned: Settings + collapse toggle -->
+                <div class="sidebar-bottom">
+                    <button class="nav-item" data-section="settings">
+                        <span class="nav-icon" aria-hidden="true">
+                            <!-- Gear icon -->
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="12" cy="12" r="3" />
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                                />
+                            </svg>
+                        </span>
+                        <span class="nav-label">Settings</span>
+                    </button>
+
+                    <button id="sidebar-toggle" aria-label="Collapse sidebar">
+                        <span class="nav-icon" aria-hidden="true">
+                            <!-- Chevrons-left icon -->
+                            <svg
+                                id="toggle-icon"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <polyline points="11 17 6 12 11 7" />
+                                <polyline points="18 17 13 12 18 7" />
+                            </svg>
+                        </span>
+                        <span class="toggle-label">Collapse</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- =======================================================
+       Main Content
+       ======================================================= -->
+            <main id="content">
+                <!-- -------------------------------------------------------
+         4.0  Dashboard (default)
+         ------------------------------------------------------- -->
+                <section
+                    id="section-dashboard"
+                    class="page-section active"
+                    aria-labelledby="title-dashboard"
+                >
+                    <h1 id="title-dashboard" class="page-title">Dashboard</h1>
+
+                    <div class="cards-row">
+                        <!-- Projects -->
+                        <div class="card">
+                            <svg
+                                class="card-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                                />
+                            </svg>
+                            <div class="card-value">--</div>
+                            <div class="card-label">Projects</div>
+                        </div>
+
+                        <!-- Data Sources -->
+                        <div class="card">
+                            <svg
+                                class="card-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                            </svg>
+                            <div class="card-value">--</div>
+                            <div class="card-label">Data Sources</div>
+                        </div>
+
+                        <!-- Pipelines -->
+                        <div class="card">
+                            <svg
+                                class="card-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <polyline
+                                    points="22 12 18 12 15 21 9 3 6 12 2 12"
+                                />
+                            </svg>
+                            <div class="card-value">--</div>
+                            <div class="card-label">Pipelines</div>
+                        </div>
+
+                        <!-- Transforms -->
+                        <div class="card">
+                            <svg
+                                class="card-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <polyline points="16 3 21 3 21 8" />
+                                <line x1="4" y1="20" x2="21" y2="3" />
+                                <polyline points="21 16 21 21 16 21" />
+                                <line x1="15" y1="15" x2="21" y2="21" />
+                            </svg>
+                            <div class="card-value">--</div>
+                            <div class="card-label">Transforms</div>
+                        </div>
+
+                        <!-- Executions -->
+                        <div class="card">
+                            <svg
+                                class="card-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <polygon points="5 3 19 12 5 21 5 3" />
+                            </svg>
+                            <div class="card-value">--</div>
+                            <div class="card-label">Executions</div>
+                        </div>
+
+                        <!-- Amount Spent -->
+                        <div class="card">
+                            <svg
+                                class="card-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <line x1="12" y1="1" x2="12" y2="23" />
+                                <path
+                                    d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                                />
+                            </svg>
+                            <div class="card-value">--</div>
+                            <div class="card-label">Amount Spent</div>
+                        </div>
+
+                        <!-- Errors Today -->
+                        <div class="card">
+                            <svg
+                                class="card-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <div class="card-value">--</div>
+                            <div class="card-label">Errors Today</div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity table -->
+                    <div class="table-wrap">
+                        <h2>Recent Activity</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Last Run</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 120px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 60px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 50px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 95px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 60px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 50px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 140px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 60px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 50px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- -------------------------------------------------------
+         4.1  Projects
+         ------------------------------------------------------- -->
+                <section
+                    id="section-projects"
+                    class="page-section"
+                    aria-labelledby="title-projects"
+                >
+                    <h1 id="title-projects" class="page-title">Projects</h1>
+                    <div class="projects-placeholder">
+                        <svg
+                            width="64"
+                            height="64"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                            />
+                        </svg>
+                        <p>
+                            No projects yet — your project list will appear
+                            here.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- -------------------------------------------------------
+         4.2  Pipelines
+         ------------------------------------------------------- -->
+                <section
+                    id="section-pipelines"
+                    class="page-section"
+                    aria-labelledby="title-pipelines"
+                >
+                    <h1 id="title-pipelines" class="page-title">Pipelines</h1>
+                    <div class="toolbar">
+                        <button
+                            class="btn-accent"
+                            disabled
+                            aria-disabled="true"
+                        >
+                            + New Pipeline
+                        </button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pipeline Name</th>
+                                    <th>Status</th>
+                                    <th>Source</th>
+                                    <th>Destination</th>
+                                    <th>Last Run</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 130px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-running"
+                                            >Running</span
+                                        >
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 110px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-idle"
+                                            >Idle</span
+                                        >
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 150px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-error"
+                                            >Error</span
+                                        >
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 100px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-running"
+                                            >Running</span
+                                        >
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 120px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-idle"
+                                            >Idle</span
+                                        >
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 80px"
+                                        ></span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="skel"
+                                            style="width: 90px"
+                                        ></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- -------------------------------------------------------
+         4.3  Data Sources
+         ------------------------------------------------------- -->
+                <section
+                    id="section-data-sources"
+                    class="page-section"
+                    aria-labelledby="title-data-sources"
+                >
+                    <h1 id="title-data-sources" class="page-title">
+                        Data Sources
+                    </h1>
+                    <div class="connector-grid">
+                        <div class="connector-card">
+                            <div class="connector-icon" aria-hidden="true">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                    <path
+                                        d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"
+                                    />
+                                    <path
+                                        d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="connector-name">PostgreSQL</div>
+                            <a
+                                href="#"
+                                class="connector-link"
+                                tabindex="-1"
+                                aria-disabled="true"
+                                >Configure</a
+                            >
+                        </div>
+
+                        <div class="connector-card">
+                            <div class="connector-icon" aria-hidden="true">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polyline
+                                        points="22 12 16 12 14 15 10 15 8 12 2 12"
+                                    />
+                                    <path
+                                        d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="connector-name">Amazon S3</div>
+                            <a
+                                href="#"
+                                class="connector-link"
+                                tabindex="-1"
+                                aria-disabled="true"
+                                >Configure</a
+                            >
+                        </div>
+
+                        <div class="connector-card">
+                            <div class="connector-icon" aria-hidden="true">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="connector-name">REST API</div>
+                            <a
+                                href="#"
+                                class="connector-link"
+                                tabindex="-1"
+                                aria-disabled="true"
+                                >Configure</a
+                            >
+                        </div>
+
+                        <div class="connector-card">
+                            <div class="connector-icon" aria-hidden="true">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polyline
+                                        points="22 12 18 12 15 21 9 3 6 12 2 12"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="connector-name">Apache Kafka</div>
+                            <a
+                                href="#"
+                                class="connector-link"
+                                tabindex="-1"
+                                aria-disabled="true"
+                                >Configure</a
+                            >
+                        </div>
+
+                        <div class="connector-card">
+                            <div class="connector-icon" aria-hidden="true">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                    <path
+                                        d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"
+                                    />
+                                    <path
+                                        d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="connector-name">MySQL</div>
+                            <a
+                                href="#"
+                                class="connector-link"
+                                tabindex="-1"
+                                aria-disabled="true"
+                                >Configure</a
+                            >
+                        </div>
+
+                        <div class="connector-card">
+                            <div class="connector-icon" aria-hidden="true">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                                    <path d="M2 17l10 5 10-5" />
+                                    <path d="M2 12l10 5 10-5" />
+                                </svg>
+                            </div>
+                            <div class="connector-name">Snowflake</div>
+                            <a
+                                href="#"
+                                class="connector-link"
+                                tabindex="-1"
+                                aria-disabled="true"
+                                >Configure</a
+                            >
+                        </div>
+                    </div>
+                </section>
+
+                <!-- -------------------------------------------------------
+         4.4  Transforms
+         ------------------------------------------------------- -->
+                <section
+                    id="section-transforms"
+                    class="page-section"
+                    aria-labelledby="title-transforms"
+                >
+                    <h1 id="title-transforms" class="page-title">Transforms</h1>
+                    <div class="transform-list">
+                        <div class="transform-item">
+                            <div class="transform-icon" aria-hidden="true">
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polygon
+                                        points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="transform-info">
+                                <div class="transform-name">Filter</div>
+                                <div class="transform-desc">
+                                    Exclude rows based on one or more field
+                                    conditions.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="transform-item">
+                            <div class="transform-icon" aria-hidden="true">
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polyline points="16 3 21 3 21 8" />
+                                    <line x1="4" y1="20" x2="21" y2="3" />
+                                    <polyline points="21 16 21 21 16 21" />
+                                    <line x1="15" y1="15" x2="21" y2="21" />
+                                </svg>
+                            </div>
+                            <div class="transform-info">
+                                <div class="transform-name">Map</div>
+                                <div class="transform-desc">
+                                    Apply field-level transformations and rename
+                                    columns.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="transform-item">
+                            <div class="transform-icon" aria-hidden="true">
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <circle cx="18" cy="18" r="3" />
+                                    <circle cx="6" cy="6" r="3" />
+                                    <path d="M13 6h3a2 2 0 0 1 2 2v7" />
+                                    <line x1="6" y1="9" x2="6" y2="21" />
+                                </svg>
+                            </div>
+                            <div class="transform-info">
+                                <div class="transform-name">Join</div>
+                                <div class="transform-desc">
+                                    Merge two data streams on matching key
+                                    fields.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="transform-item">
+                            <div class="transform-icon" aria-hidden="true">
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <line x1="18" y1="20" x2="18" y2="10" />
+                                    <line x1="12" y1="20" x2="12" y2="4" />
+                                    <line x1="6" y1="20" x2="6" y2="14" />
+                                    <line x1="2" y1="20" x2="22" y2="20" />
+                                </svg>
+                            </div>
+                            <div class="transform-info">
+                                <div class="transform-name">Aggregate</div>
+                                <div class="transform-desc">
+                                    Group and summarise data with sum, count,
+                                    avg, and more.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- -------------------------------------------------------
+         4.5  Settings
+         ------------------------------------------------------- -->
+                <section
+                    id="section-settings"
+                    class="page-section"
+                    aria-labelledby="title-settings"
+                >
+                    <h1 id="title-settings" class="page-title">Settings</h1>
+
+                    <div class="settings-group">
+                        <h2>General</h2>
+                        <div class="form-row">
+                            <label for="app-name">Application Name</label>
+                            <input
+                                id="app-name"
+                                type="text"
+                                value="InvarETL"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="timezone">Time Zone</label>
+                            <input
+                                id="timezone"
+                                type="text"
+                                value="UTC"
+                                disabled
+                            />
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h2>Security</h2>
+                        <div class="form-row">
+                            <label for="api-key">API Key</label>
+                            <input
+                                id="api-key"
+                                type="password"
+                                value="placeholder"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="session-timeout">Session Timeout</label>
+                            <input
+                                id="session-timeout"
+                                type="text"
+                                value="30 minutes"
+                                disabled
+                            />
+                        </div>
+                    </div>
+
+                    <button class="btn-save" disabled aria-disabled="true">
+                        Save Changes
+                    </button>
+                </section>
+            </main>
+            <!-- /#content -->
+        </div>
+        <!-- /#app -->
+
+        <script>
+            /* =================================================================
+     Theme toggle
+     ================================================================= */
+            const html = document.documentElement;
+            const themeBtn = document.getElementById("theme-toggle");
+            const iconSun = document.getElementById("icon-sun");
+            const iconMoon = document.getElementById("icon-moon");
+
+            function applyTheme(dark) {
+                if (dark) {
+                    html.setAttribute("data-theme", "dark");
+                    iconSun.style.display = "";
+                    iconMoon.style.display = "none";
+                } else {
+                    html.removeAttribute("data-theme");
+                    iconSun.style.display = "none";
+                    iconMoon.style.display = "";
+                }
+            }
+
+            // Initialise from localStorage
+            applyTheme(localStorage.getItem("theme") === "dark");
+
+            themeBtn.addEventListener("click", () => {
+                const nowDark = !html.hasAttribute("data-theme");
+                applyTheme(nowDark);
+                localStorage.setItem("theme", nowDark ? "dark" : "light");
+            });
+
+            /* =================================================================
+     Sidebar collapse / expand
+     ================================================================= */
+            const sidebar = document.getElementById("sidebar");
+            const content = document.getElementById("content");
+            const toggleBtn = document.getElementById("sidebar-toggle");
+            const toggleIcon = document.getElementById("toggle-icon");
+            const backdrop = document.getElementById("sidebar-backdrop");
+            const hamburger = document.getElementById("hamburger");
+
+            const COLLAPSED_ICON = `<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>`;
+            const EXPANDED_ICON = `<polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>`;
+
+            function isMobile() {
+                return window.innerWidth < 768;
+            }
+
+            function setCollapsed(collapsed) {
+                if (collapsed) {
+                    sidebar.classList.add("collapsed");
+                    toggleIcon.innerHTML = COLLAPSED_ICON;
+                    toggleBtn.setAttribute("aria-label", "Expand sidebar");
+                } else {
+                    sidebar.classList.remove("collapsed");
+                    toggleIcon.innerHTML = EXPANDED_ICON;
+                    toggleBtn.setAttribute("aria-label", "Collapse sidebar");
+                }
+            }
+
+            // Initialise from localStorage (desktop only)
+            if (!isMobile()) {
+                const saved = localStorage.getItem("sidebarCollapsed");
+                // Default: collapsed on 768–1023, expanded on ≥1024
+                const defaultCollapsed = window.innerWidth < 1024;
+                setCollapsed(
+                    saved !== null ? saved === "true" : defaultCollapsed,
+                );
+            }
+
+            toggleBtn.addEventListener("click", () => {
+                if (isMobile()) return; // mobile handled by backdrop
+                const nowCollapsed = !sidebar.classList.contains("collapsed");
+                setCollapsed(nowCollapsed);
+                localStorage.setItem("sidebarCollapsed", nowCollapsed);
+            });
+
+            // Mobile hamburger
+            hamburger.addEventListener("click", () => {
+                sidebar.classList.toggle("mobile-open");
+                backdrop.classList.toggle("visible");
+            });
+
+            backdrop.addEventListener("click", () => {
+                sidebar.classList.remove("mobile-open");
+                backdrop.classList.remove("visible");
+            });
+
+            // On resize: clean up mobile state
+            window.addEventListener("resize", () => {
+                if (!isMobile()) {
+                    sidebar.classList.remove("mobile-open");
+                    backdrop.classList.remove("visible");
+                    // Reapply desktop collapsed state
+                    const saved = localStorage.getItem("sidebarCollapsed");
+                    const defaultCollapsed = window.innerWidth < 1024;
+                    setCollapsed(
+                        saved !== null ? saved === "true" : defaultCollapsed,
+                    );
+                }
+            });
+
+            /* =================================================================
+     Nav item selection
+     ================================================================= */
+            const navItems = document.querySelectorAll(
+                ".nav-item[data-section]",
+            );
+            const sections = document.querySelectorAll(".page-section");
+
+            navItems.forEach((item) => {
+                item.addEventListener("click", () => {
+                    const target = item.dataset.section;
+
+                    // Update nav active state
+                    navItems.forEach((n) => {
+                        n.classList.remove("active");
+                        n.removeAttribute("aria-current");
+                    });
+                    item.classList.add("active");
+                    item.setAttribute("aria-current", "page");
+
+                    // Show target section
+                    sections.forEach((s) => s.classList.remove("active"));
+                    const targetSection = document.getElementById(
+                        "section-" + target,
+                    );
+                    if (targetSection) targetSection.classList.add("active");
+
+                    // Close mobile sidebar on nav
+                    if (isMobile()) {
+                        sidebar.classList.remove("mobile-open");
+                        backdrop.classList.remove("visible");
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
