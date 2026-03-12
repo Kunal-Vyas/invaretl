@@ -4,10 +4,28 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>InvarETL</title>
+
         <style>
+            /* Skip Link for Accessibility */
+            .skip-link {
+                position: absolute;
+                top: -100px;
+                left: 0;
+                background: var(--accent);
+                color: #fff;
+                padding: 8px 16px;
+                text-decoration: none;
+                z-index: 10000;
+                border-radius: 0 0 4px 0;
+            }
+
+            .skip-link:focus {
+                top: 0;
+            }
+
             /* =====================================================================
-       CSS Custom Properties — Light (default) & Dark themes
-       ===================================================================== */
+        CSS Custom Properties — Light (default) & Dark themes
+        ===================================================================== */
             :root {
                 --bg-primary: #f5f2eb;
                 --bg-surface: #ffffff;
@@ -66,6 +84,15 @@
                 outline: 2px solid var(--accent);
                 outline-offset: 2px;
                 border-radius: 3px;
+            }
+
+            /* Focus styles for interactive elements */
+            .card-link:focus-visible,
+            .dropdown-item:focus,
+            .pagination-btn:focus-visible,
+            .pagination-number:focus-visible {
+                outline: 2px solid var(--accent);
+                outline-offset: 2px;
             }
 
             /* =====================================================================
@@ -153,6 +180,126 @@
                 flex-shrink: 0;
             }
 
+            /* User Dropdown Container */
+            .user-dropdown {
+                position: relative;
+            }
+
+            /* Avatar as dropdown trigger button */
+            .user-dropdown .avatar {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                width: auto;
+                min-width: 32px;
+                height: 32px;
+                padding: 0 8px;
+                font-size: 0.72rem;
+                font-weight: 700;
+                cursor: pointer;
+                border-radius: 50%;
+                background-color: var(--accent) !important;
+                color: #fff;
+                transition: opacity 0.15s;
+            }
+
+            .user-dropdown .avatar:hover {
+                opacity: 0.85;
+            }
+
+            /* Dropdown Arrow */
+            .dropdown-arrow {
+                flex-shrink: 0;
+                transition: transform 0.2s ease;
+            }
+
+            #user-dropdown-btn[aria-expanded="true"] .dropdown-arrow {
+                transform: rotate(180deg);
+            }
+
+            /* Dropdown Menu */
+            .dropdown-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                margin-top: 8px;
+                min-width: 160px;
+                background: var(--bg-surface);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                z-index: 300;
+                display: none;
+                overflow: hidden;
+            }
+
+            .dropdown-menu.visible {
+                display: block;
+                animation: dropdown-fade-in 0.15s ease;
+            }
+
+            @keyframes dropdown-fade-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Dropdown Menu Items */
+            .dropdown-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                padding: 10px 16px;
+                font-size: 0.875rem;
+                color: var(--text-primary);
+                text-decoration: none;
+                transition: background 0.15s, color 0.15s;
+            }
+
+            .dropdown-item:hover {
+                background: var(--bg-primary);
+            }
+
+            /* Dropdown Divider */
+            .dropdown-divider {
+                margin: 4px 0;
+                border: none;
+                border-top: 1px solid var(--border);
+                opacity: 0.5;
+            }
+
+            /* Focus visible for dropdown menu */
+            .dropdown-item:focus {
+                outline: 2px solid var(--accent);
+                outline-offset: -2px;
+            }
+
+            .dropdown-item svg {
+                flex-shrink: 0;
+                width: 16px;
+                height: 16px;
+            }
+
+            .dropdown-item:hover {
+                background: var(--bg-primary);
+                color: var(--text-primary);
+            }
+
+            /* Dropdown Divider */
+            .dropdown-divider {
+                margin: 4px 0;
+                border: none;
+                border-top: 1px solid var(--border);
+                opacity: 0.5;
+            }
+
             /* =====================================================================
        Layout — sidebar + main
        ===================================================================== */
@@ -226,6 +373,24 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+            }
+
+            .nav-item .nav-label {
+                overflow: hidden;
+                transition: opacity 0.15s, width 0.15s;
+            }
+
+            /* Consolidated nav button styles */
+            .nav-item,
+            #sidebar-toggle {
+                border-left: 3px solid transparent;
+            }
+
+            .nav-item.active {
+                border-left-color: var(--accent);
+                background: color-mix(in srgb, var(--accent) 10%, transparent);
+                color: var(--text-primary);
+                font-weight: 600;
             }
 
             .nav-item .nav-label {
@@ -329,6 +494,20 @@
                 gap: 10px;
             }
 
+            .card-link {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                color: var(--text-primary);
+                text-decoration: none;
+                transition: opacity 0.15s, transform 0.15s;
+            }
+
+            .card-link:hover {
+                opacity: 0.8;
+                transform: translateY(-2px);
+            }
+
             .card-icon {
                 width: 32px;
                 height: 32px;
@@ -368,6 +547,22 @@
                 border-bottom: 1px solid var(--border);
             }
 
+            #section-dashboard .table-title {
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+            }
+
+            .table-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .table-title svg {
+                flex-shrink: 0;
+            }
+
             table {
                 width: 100%;
                 border-collapse: collapse;
@@ -384,12 +579,101 @@
                 border-bottom: 1px solid var(--border);
             }
 
+            thead th .th-content {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            thead th svg {
+                flex-shrink: 0;
+                opacity: 0.7;
+            }
+
             tbody td {
                 padding: 12px 20px;
                 border-bottom: 1px solid var(--border);
             }
             tbody tr:last-child td {
                 border-bottom: none;
+            }
+
+            /* Table links */
+            tbody td a {
+                color: var(--text-primary);
+                text-decoration: none;
+                transition: color 0.15s;
+            }
+            tbody td a:hover {
+                color: var(--accent);
+                text-decoration: underline;
+            }
+
+            /* Pagination */
+            .pagination {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 8px;
+                margin-top: 20px;
+            }
+
+            .pagination-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg-surface);
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: border-color 0.15s, background 0.15s, color 0.15s;
+            }
+
+            .pagination-btn:hover:not(:disabled) {
+                border-color: var(--accent);
+                background: var(--bg-primary);
+            }
+
+            .pagination-btn:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            .pagination-numbers {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .pagination-number {
+                width: 32px;
+                height: 32px;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg-surface);
+                color: var(--text-primary);
+                font-size: 0.875rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: border-color 0.15s, background 0.15s, color 0.15s;
+            }
+
+            .pagination-number:hover {
+                border-color: var(--accent);
+                background: var(--bg-primary);
+            }
+
+            .pagination-number.active {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+            }
+
+            .pagination-number.active:hover {
+                opacity: 0.9;
             }
 
             /* Skeleton bar */
@@ -409,18 +693,17 @@
                 font-weight: 600;
                 font-family: var(--font-mono);
             }
+
             .badge-running {
                 background: color-mix(in srgb, #22c55e 15%, transparent);
                 color: #16a34a;
             }
+
             .badge-idle {
-                background: color-mix(
-                    in srgb,
-                    var(--text-muted) 15%,
-                    transparent
-                );
+                background: color-mix(in srgb, var(--text-muted) 15%, transparent);
                 color: var(--text-muted);
             }
+
             .badge-error {
                 background: color-mix(in srgb, var(--accent) 15%, transparent);
                 color: var(--accent);
@@ -609,9 +892,20 @@
                 width: 100%;
                 max-width: 360px;
             }
+
+            .form-row input:focus:not(:disabled) {
+                outline: 2px solid var(--accent);
+                outline-offset: 2px;
+                border-color: var(--accent);
+            }
+
             .form-row input:disabled {
                 opacity: 0.55;
                 cursor: not-allowed;
+            }
+
+            .form-row input:disabled:hover {
+                opacity: 0.55;
             }
 
             .btn-save {
@@ -622,6 +916,86 @@
                 font-size: 0.875rem;
                 font-weight: 600;
                 margin-top: 4px;
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            /* Profile Picture Section */
+            .profile-picture-section {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .avatar-preview {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: var(--accent);
+                color: #fff;
+                font-size: 1.5rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                box-shadow: 0 2px 8px rgba(232, 74, 31, 0.2);
+            }
+
+            .profile-picture-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .profile-picture-info {
+                margin-bottom: 8px;
+                font-size: 0.875rem;
+                color: var(--text-muted);
+            }
+
+            .btn-secondary {
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 0.875rem;
+                font-weight: 500;
+                border: 1px solid var(--border);
+                transition: opacity 0.15s;
+            }
+
+            .btn-secondary:hover:not(:disabled) {
+                opacity: 0.8;
+            }
+
+            .btn-secondary:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .profile-picture-info {
+                margin-bottom: 8px;
+                font-size: 0.875rem;
+                color: var(--text-muted);
+            }
+
+            .btn-secondary {
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 0.875rem;
+                font-weight: 500;
+                border: 1px solid var(--border);
+                transition: opacity 0.15s;
+            }
+
+            .btn-secondary:hover:not(:disabled) {
+                opacity: 0.8;
+            }
+
+            .btn-secondary:disabled {
                 opacity: 0.5;
                 cursor: not-allowed;
             }
@@ -638,8 +1012,8 @@
             }
 
             /* =====================================================================
-       Responsive
-       ===================================================================== */
+        Responsive
+        ===================================================================== */
             @media (max-width: 1023px) {
                 /* Collapsed by default at 768–1023px */
                 aside#sidebar {
@@ -658,9 +1032,7 @@
                 aside#sidebar {
                     width: var(--sidebar-w) !important;
                     transform: translateX(calc(-1 * var(--sidebar-w) - 4px));
-                    transition:
-                        transform 0.25s ease,
-                        width 0.2s ease;
+                    transition: transform 0.25s ease, width 0.2s ease;
                 }
 
                 aside#sidebar.mobile-open {
@@ -729,10 +1101,33 @@
                 main#content {
                     padding: 16px 12px;
                 }
+
+                /* Profile picture mobile optimization */
+                .profile-picture-section {
+                    flex-direction: column;
+                    text-align: center;
+                }
+
+                .profile-picture-actions {
+                    flex-direction: row;
+                }
+
+                /* Pagination mobile optimization */
+                .pagination-numbers {
+                    gap: 2px;
+                }
+
+                .pagination-number {
+                    min-width: 28px;
+                    font-size: 0.8rem;
+                }
             }
         </style>
     </head>
     <body>
+        <!-- Skip to main content for keyboard users -->
+        <a href="#content" class="skip-link">Skip to main content</a>
+
         <!-- =========================================================
      Top Navigation Bar
      ========================================================= -->
@@ -800,7 +1195,38 @@
                     </svg>
                 </button>
 
-                <div class="avatar" role="img" aria-label="User KV">KV</div>
+                <div class="user-dropdown">
+                    <button class="avatar" id="user-dropdown-btn" aria-label="User menu" aria-expanded="false" aria-haspopup="true">
+                        KV
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu" id="user-dropdown-menu" role="menu" aria-labelledby="user-dropdown-btn">
+                        <a href="#section-profile" class="dropdown-item" role="menuitem">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Profile
+                        </a>
+                        <a href="#section-account" class="dropdown-item" role="menuitem">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            Account
+                        </a>
+                        <hr class="dropdown-divider" role="separator">
+                        <a href="#" class="dropdown-item" role="menuitem">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -926,30 +1352,8 @@
                     </button>
                 </nav>
 
-                <!-- Bottom-pinned: Settings + collapse toggle -->
+                <!-- Bottom-pinned: Collapse toggle -->
                 <div class="sidebar-bottom">
-                    <button class="nav-item" data-section="settings">
-                        <span class="nav-icon" aria-hidden="true">
-                            <!-- Gear icon -->
-                            <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <circle cx="12" cy="12" r="3" />
-                                <path
-                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                                />
-                            </svg>
-                        </span>
-                        <span class="nav-label">Settings</span>
-                    </button>
-
                     <button id="sidebar-toggle" aria-label="Collapse sidebar">
                         <span class="nav-icon" aria-hidden="true">
                             <!-- Chevrons-left icon -->
@@ -990,83 +1394,91 @@
                     <div class="cards-row">
                         <!-- Projects -->
                         <div class="card">
-                            <svg
-                                class="card-icon"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
-                                />
-                            </svg>
-                            <div class="card-value">--</div>
-                            <div class="card-label">Projects</div>
+                            <a href="#section-projects" class="card-link">
+                                <svg
+                                    class="card-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                                    />
+                                </svg>
+                                <div class="card-value">12</div>
+                                <div class="card-label">Projects</div>
+                            </a>
                         </div>
 
                         <!-- Data Sources -->
                         <div class="card">
-                            <svg
-                                class="card-icon"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <ellipse cx="12" cy="5" rx="9" ry="3" />
-                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-                            </svg>
-                            <div class="card-value">--</div>
-                            <div class="card-label">Data Sources</div>
+                            <a href="#section-data-sources" class="card-link">
+                                <svg
+                                    class="card-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                                </svg>
+                                <div class="card-value">8</div>
+                                <div class="card-label">Data Sources</div>
+                            </a>
                         </div>
 
                         <!-- Pipelines -->
                         <div class="card">
-                            <svg
-                                class="card-icon"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <polyline
-                                    points="22 12 18 12 15 21 9 3 6 12 2 12"
-                                />
-                            </svg>
-                            <div class="card-value">--</div>
-                            <div class="card-label">Pipelines</div>
+                            <a href="#section-pipelines" class="card-link">
+                                <svg
+                                    class="card-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <polyline
+                                        points="22 12 18 12 15 21 9 3 6 12 2 12"
+                                    />
+                                </svg>
+                                <div class="card-value">24</div>
+                                <div class="card-label">Pipelines</div>
+                            </a>
                         </div>
 
                         <!-- Transforms -->
                         <div class="card">
-                            <svg
-                                class="card-icon"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <polyline points="16 3 21 3 21 8" />
-                                <line x1="4" y1="20" x2="21" y2="3" />
-                                <polyline points="21 16 21 21 16 21" />
-                                <line x1="15" y1="15" x2="21" y2="21" />
-                            </svg>
-                            <div class="card-value">--</div>
-                            <div class="card-label">Transforms</div>
+                            <a href="#section-transforms" class="card-link">
+                                <svg
+                                    class="card-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <polyline points="16 3 21 3 21 8" />
+                                    <line x1="4" y1="20" x2="21" y2="3" />
+                                    <polyline points="21 16 21 21 16 21" />
+                                    <line x1="15" y1="15" x2="21" y2="21" />
+                                </svg>
+                                <div class="card-value">18</div>
+                                <div class="card-label">Transforms</div>
+                            </a>
                         </div>
 
                         <!-- Executions -->
@@ -1083,7 +1495,7 @@
                             >
                                 <polygon points="5 3 19 12 5 21 5 3" />
                             </svg>
-                            <div class="card-value">--</div>
+                            <div class="card-value">1,247</div>
                             <div class="card-label">Executions</div>
                         </div>
 
@@ -1104,7 +1516,7 @@
                                     d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
                                 />
                             </svg>
-                            <div class="card-value">--</div>
+                            <div class="card-value">$142.57</div>
                             <div class="card-label">Amount Spent</div>
                         </div>
 
@@ -1124,104 +1536,197 @@
                                 <line x1="12" y1="8" x2="12" y2="12" />
                                 <line x1="12" y1="16" x2="12.01" y2="16" />
                             </svg>
-                            <div class="card-value">--</div>
+                            <div class="card-value">3</div>
                             <div class="card-label">Errors Today</div>
                         </div>
                     </div>
 
                     <!-- Recent Activity table -->
+                    <h2 class="table-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Recent Activity
+                    </h2>
                     <div class="table-wrap">
-                        <h2>Recent Activity</h2>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                    <th>Last Run</th>
-                                    <th>Duration</th>
+                                    <th>
+                                        <span class="th-content">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            Project
+                                        </span>
+                                    </th>
+                                    <th>
+                                        <span class="th-content">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                            </svg>
+                                            Status
+                                        </span>
+                                    </th>
+                                    <th>
+                                        <span class="th-content">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                            Last Run
+                                        </span>
+                                    </th>
+                                    <th>
+                                        <span class="th-content">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                                <line x1="8" y1="12" x2="10" y2="12"></line>
+                                            </svg>
+                                            Duration
+                                        </span>
+                                    </th>
+                                    <th>
+                                        <span class="th-content">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                            </svg>
+                                            Cost
+                                        </span>
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                             <tbody>
                                 <tr>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 120px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 60px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 90px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 50px"
-                                        ></span>
-                                    </td>
+                                    <td><a href="#">ETL - Sales Data Sync</a></td>
+                                    <td><a href="#" class="badge badge-running">Running</a></td>
+                                    <td>2 min ago</td>
+                                    <td>12m 34s</td>
+                                    <td>$0.42</td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 95px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 60px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 90px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 50px"
-                                        ></span>
-                                    </td>
+                                    <td><a href="#">Customer Analytics Pipeline</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>1 hour ago</td>
+                                    <td>5m 12s</td>
+                                    <td>$0.18</td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 140px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 60px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 90px"
-                                        ></span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            class="skel"
-                                            style="width: 50px"
-                                        ></span>
-                                    </td>
+                                    <td><a href="#">Daily Sales Report Generation</a></td>
+                                    <td><a href="#" class="badge badge-error">Error</a></td>
+                                    <td>3 hours ago</td>
+                                    <td>8m 45s</td>
+                                    <td>$0.31</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="#">User Activity Aggregation</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>5 hours ago</td>
+                                    <td>3m 22s</td>
+                                    <td>$0.11</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="#">Inventory Sync Pipeline</a></td>
+                                    <td><a href="#" class="badge badge-running">Running</a></td>
+                                    <td>8 hours ago</td>
+                                    <td>15m 07s</td>
+                                    <td>$0.53</td>
+                                </tr>
+                                <tr data-page="2">
+                                    <td><a href="#">Marketing Analytics Pipeline</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>12 hours ago</td>
+                                    <td>6m 18s</td>
+                                    <td>$0.22</td>
+                                </tr>
+                                <tr data-page="2">
+                                    <td><a href="#">Customer Data Sync</a></td>
+                                    <td><a href="#" class="badge badge-running">Running</a></td>
+                                    <td>14 hours ago</td>
+                                    <td>9m 45s</td>
+                                    <td>$0.35</td>
+                                </tr>
+                                <tr data-page="2">
+                                    <td><a href="#">Product Catalog Update</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>16 hours ago</td>
+                                    <td>4m 56s</td>
+                                    <td>$0.15</td>
+                                </tr>
+                                <tr data-page="2">
+                                    <td><a href="#">Order Processing Pipeline</a></td>
+                                    <td><a href="#" class="badge badge-error">Error</a></td>
+                                    <td>18 hours ago</td>
+                                    <td>11m 23s</td>
+                                    <td>$0.41</td>
+                                </tr>
+                                <tr data-page="2">
+                                    <td><a href="#">Inventory Reconciliation</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>20 hours ago</td>
+                                    <td>7m 34s</td>
+                                    <td>$0.27</td>
+                                </tr>
+                                <tr data-page="3">
+                                    <td><a href="#">Sales Data Aggregation</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>1 day ago</td>
+                                    <td>5m 48s</td>
+                                    <td>$0.19</td>
+                                </tr>
+                                <tr data-page="3">
+                                    <td><a href="#">User Behavior Analysis</a></td>
+                                    <td><a href="#" class="badge badge-running">Running</a></td>
+                                    <td>1 day ago</td>
+                                    <td>12m 12s</td>
+                                    <td>$0.44</td>
+                                </tr>
+                                <tr data-page="3">
+                                    <td><a href="#">Financial Reporting Pipeline</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>2 days ago</td>
+                                    <td>8m 29s</td>
+                                    <td>$0.31</td>
+                                </tr>
+                                <tr data-page="3">
+                                    <td><a href="#">Campaign Performance Metrics</a></td>
+                                    <td><a href="#" class="badge badge-error">Error</a></td>
+                                    <td>2 days ago</td>
+                                    <td>6m 55s</td>
+                                    <td>$0.25</td>
+                                </tr>
+                                <tr data-page="3">
+                                    <td><a href="#">Supply Chain Analytics</a></td>
+                                    <td><a href="#" class="badge badge-idle">Idle</a></td>
+                                    <td>3 days ago</td>
+                                    <td>10m 41s</td>
+                                    <td>$0.38</td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <button class="pagination-btn" id="pagination-prev" disabled aria-label="Previous page">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <div class="pagination-numbers">
+                            <button class="pagination-number active" data-page="1" aria-label="Page 1">1</button>
+                            <button class="pagination-number" data-page="2" aria-label="Page 2">2</button>
+                            <button class="pagination-number" data-page="3" aria-label="Page 3">3</button>
+                        </div>
+                        <button class="pagination-btn" id="pagination-next" aria-label="Next page">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
                     </div>
                 </section>
 
@@ -1813,6 +2318,192 @@
                         Save Changes
                     </button>
                 </section>
+
+                <!-- -------------------------------------------------------
+          4.6  Profile
+          ------------------------------------------------------- -->
+                <section
+                    id="section-profile"
+                    class="page-section"
+                    aria-labelledby="title-profile"
+                >
+                    <h1 id="title-profile" class="page-title">Profile</h1>
+
+                    <div class="settings-group">
+                        <h2>Personal Information</h2>
+                        <div class="form-row">
+                            <label for="profile-fullname">Full Name</label>
+                            <input
+                                id="profile-fullname"
+                                type="text"
+                                value="KV"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="profile-email">Email Address</label>
+                            <input
+                                id="profile-email"
+                                type="email"
+                                value="kv@invaretl.com"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="profile-company">Company</label>
+                            <input
+                                id="profile-company"
+                                type="text"
+                                value="InvarETL"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="profile-role">Role</label>
+                            <input
+                                id="profile-role"
+                                type="text"
+                                value="Administrator"
+                                disabled
+                            />
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h2>Profile Picture</h2>
+                        <div class="profile-picture-section">
+                            <div class="avatar-preview">KV</div>
+                            <div>
+                                <div class="profile-picture-info">JPG, PNG or GIF (max 5MB)</div>
+                                <div class="profile-picture-actions">
+                                    <button class="btn-accent" disabled>Upload New Picture</button>
+                                    <button class="btn-secondary" disabled>Remove Picture</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-save" disabled aria-disabled="true">
+                        Save Changes
+                    </button>
+                </section>
+
+                <!-- -------------------------------------------------------
+          4.7  Account
+          ------------------------------------------------------- -->
+                <section
+                    id="section-account"
+                    class="page-section"
+                    aria-labelledby="title-account"
+                >
+                    <h1 id="title-account" class="page-title">Account Settings</h1>
+
+                    <div class="settings-group">
+                        <h2>Account Details</h2>
+                        <div class="form-row">
+                            <label for="account-id">Account ID</label>
+                            <input
+                                id="account-id"
+                                type="text"
+                                value="INV-2024-001"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="account-plan">Plan</label>
+                            <input
+                                id="account-plan"
+                                type="text"
+                                value="Enterprise"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="account-status">Status</label>
+                            <input
+                                id="account-status"
+                                type="text"
+                                value="Active"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="account-created">Created</label>
+                            <input
+                                id="account-created"
+                                type="text"
+                                value="January 15, 2024"
+                                disabled
+                            />
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h2>Billing Information</h2>
+                        <div class="form-row">
+                            <label for="billing-email">Billing Email</label>
+                            <input
+                                id="billing-email"
+                                type="email"
+                                value="billing@invaretl.com"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="billing-address">Billing Address</label>
+                            <input
+                                id="billing-address"
+                                type="text"
+                                value="123 Data Pipeline Way, San Francisco, CA 94105"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="billing-card">Payment Method</label>
+                            <input
+                                id="billing-card"
+                                type="text"
+                                value="•••• •••• •••• 4242"
+                                disabled
+                            />
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h2>Security</h2>
+                        <div class="form-row">
+                            <label for="password-last-changed">Last Password Change</label>
+                            <input
+                                id="password-last-changed"
+                                type="text"
+                                value="30 days ago"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="2fa-enabled">Two-Factor Authentication</label>
+                            <input
+                                id="2fa-enabled"
+                                type="text"
+                                value="Enabled"
+                                disabled
+                            />
+                        </div>
+                        <div class="form-row">
+                            <label for="active-sessions">Active Sessions</label>
+                            <input
+                                id="active-sessions"
+                                type="text"
+                                value="3 sessions (Current, Chrome, Safari)"
+                                disabled
+                            />
+                        </div>
+                    </div>
+
+                    <button class="btn-save" disabled aria-disabled="true">
+                        Save Changes
+                    </button>
+                </section>
             </main>
             <!-- /#content -->
         </div>
@@ -1820,8 +2511,8 @@
 
         <script>
             /* =================================================================
-     Theme toggle
-     ================================================================= */
+      Theme toggle
+      ================================================================= */
             const html = document.documentElement;
             const themeBtn = document.getElementById("theme-toggle");
             const iconSun = document.getElementById("icon-sun");
@@ -1849,8 +2540,46 @@
             });
 
             /* =================================================================
-     Sidebar collapse / expand
-     ================================================================= */
+      User Dropdown Toggle
+      ================================================================= */
+            const userDropdownBtn = document.getElementById("user-dropdown-btn");
+            const userDropdownMenu = document.getElementById("user-dropdown-menu");
+
+            if (userDropdownBtn && userDropdownMenu) {
+                function toggleUserDropdown(show) {
+                    const isExpanded = show !== undefined ? show : userDropdownBtn.getAttribute("aria-expanded") !== "true";
+                    userDropdownBtn.setAttribute("aria-expanded", isExpanded);
+                    userDropdownMenu.classList.toggle("visible", isExpanded);
+                }
+
+                userDropdownBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    toggleUserDropdown();
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener("click", (e) => {
+                    if (userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                            userDropdownBtn.setAttribute("aria-expanded", "false");
+                            userDropdownMenu.classList.remove("visible");
+                        }
+                    }
+                });
+
+                // Close on Escape key
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                        userDropdownBtn.focus();
+                    }
+                });
+            }
+
+            /* =================================================================
+      Sidebar collapse / expand
+      ================================================================= */
             const sidebar = document.getElementById("sidebar");
             const content = document.getElementById("content");
             const toggleBtn = document.getElementById("sidebar-toggle");
@@ -1937,8 +2666,8 @@
             });
 
             /* =================================================================
-     Nav item selection
-     ================================================================= */
+      Nav item selection
+      ================================================================= */
             const navItems = document.querySelectorAll(
                 ".nav-item[data-section]",
             );
@@ -1970,6 +2699,634 @@
                     }
                 });
             });
+
+            /* =================================================================
+      Dashboard Card Navigation
+      ================================================================= */
+            const cardLinks = document.querySelectorAll(".card-link");
+
+            cardLinks.forEach((link) => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const sectionName = link.getAttribute("href").replace("#section-", "");
+                    
+                    // Find corresponding nav item
+                    const targetNav = document.querySelector(
+                        `.nav-item[data-section="${sectionName}"]`
+                    );
+
+                    if (targetNav) {
+                        // Triggered nav item click to use existing logic
+                        targetNav.click();
+                    }
+                });
+            });
+
+            /* =================================================================
+      Browser History & Back/Forward Button Support
+      ================================================================= */
+            window.addEventListener("hashchange", () => {
+                const hash = window.location.hash;
+                const sectionName = hash.replace("#section-", "");
+
+                if (sectionName) {
+                    const targetSection = document.getElementById("section-" + sectionName);
+                    if (targetSection) {
+                        // Update visible section
+                        sections.forEach((s) => s.classList.remove("active"));
+                        targetSection.classList.add("active");
+
+                        // Update nav active state
+                        navItems.forEach((n) => {
+                            n.classList.remove("active");
+                            n.removeAttribute("aria-current");
+                        });
+
+                        const targetNav = document.querySelector(
+                            `.nav-item[data-section="${sectionName}"]`
+                        );
+                        if (targetNav) {
+                            targetNav.classList.add("active");
+                            targetNav.setAttribute("aria-current", "page");
+                        }
+                    }
+                }
+            });
+
+            // Handle initial hash on page load
+            window.addEventListener("load", () => {
+                const hash = window.location.hash;
+                if (hash) {
+                    const sectionName = hash.replace("#section-", "");
+                    const targetSection = document.getElementById("section-" + sectionName);
+                    if (targetSection) {
+                        sections.forEach((s) => s.classList.remove("active"));
+                        targetSection.classList.add("active");
+
+                        navItems.forEach((n) => {
+                            n.classList.remove("active");
+                            n.removeAttribute("aria-current");
+                        });
+
+                        const targetNav = document.querySelector(
+                            `.nav-item[data-section="${sectionName}"]`
+                        );
+                        if (targetNav) {
+                            targetNav.classList.add("active");
+                            targetNav.setAttribute("aria-current", "page");
+                        }
+                    }
+                }
+            });
+
+            /* =================================================================
+      Recent Activity Table Pagination
+      ================================================================= */
+            const tableRows = document.querySelectorAll("#section-dashboard tbody tr");
+            const paginationNumbers = document.querySelectorAll(".pagination-number");
+            const prevBtn = document.querySelector("#pagination-prev");
+            const nextBtn = document.querySelector("#pagination-next");
+            const totalPages = 3;
+            let currentPage = 1;
+
+            function showPage(page) {
+                currentPage = page;
+                const validPage = Math.max(1, Math.min(page, totalPages));
+
+                // Show/hide rows based on page
+                tableRows.forEach((row) => {
+                    const rowPage = row.dataset.page || "1";
+                    row.style.display = parseInt(rowPage) === validPage ? "" : "none";
+                });
+
+                // Update pagination number states
+                paginationNumbers.forEach((btn) => {
+                    const btnPage = parseInt(btn.dataset.page);
+                    btn.classList.toggle("active", btnPage === validPage);
+                });
+
+                // Update prev/next button states
+                prevBtn.disabled = validPage === 1;
+                nextBtn.disabled = validPage === totalPages;
+            }
+
+            // Initialize pagination
+            showPage(1);
+
+            // Event delegation for pagination
+            document.querySelector(".pagination").addEventListener("click", (e) => {
+                const target = e.target;
+
+                if (target.classList.contains("pagination-number")) {
+                    showPage(parseInt(target.dataset.page));
+                } else if (target.id === "pagination-prev" || target.closest("#pagination-prev")) {
+                    if (currentPage > 1) showPage(currentPage - 1);
+                } else if (target.id === "pagination-next" || target.closest("#pagination-next")) {
+                    if (currentPage < totalPages) showPage(currentPage + 1);
+                }
+            });
+        </script>
+                        }
+                    } catch (error) {
+                        console.error("User dropdown error:", error);
+                    }
+
+                // Close dropdown when clicking menu items
+                userDropdownMenu.addEventListener("click", (e) => {
+                    const menuItem = e.target.closest(".dropdown-item");
+                    if (menuItem && menuItem.getAttribute("href") && menuItem.getAttribute("href") !== "#") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                    }
+                });
+
+                // Close on Escape key
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                        userDropdownBtn.focus();
+                    }
+                });
+
+                /* =================================================================
+         Sidebar collapse / expand
+         ================================================================= */
+                try {
+                    const userDropdownBtn = document.getElementById("user-dropdown-btn");
+                    const userDropdownMenu = document.getElementById("user-dropdown-menu");
+
+                    if (userDropdownBtn && userDropdownMenu) {
+                        function toggleUserDropdown(show) {
+                            const isExpanded = show !== undefined ? show : userDropdownBtn.getAttribute("aria-expanded") !== "true";
+                            userDropdownBtn.setAttribute("aria-expanded", isExpanded);
+                            userDropdownMenu.classList.toggle("visible", isExpanded);
+
+                            // Focus first menu item when opening
+                            if (isExpanded) {
+                                const firstItem = userDropdownMenu.querySelector(".dropdown-item");
+                                if (firstItem) setTimeout(() => firstItem.focus(), 100);
+                            }
+                        }
+
+                        userDropdownBtn.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            toggleUserDropdown();
+                        });
+
+                        // Close dropdown when clicking outside
+                        document.addEventListener("click", (e) => {
+                            if (userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                                if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                                    userDropdownBtn.setAttribute("aria-expanded", "false");
+                                    userDropdownMenu.classList.remove("visible");
+                                }
+                            }
+                        });
+
+                        // Close on Escape key
+                        document.addEventListener("keydown", (e) => {
+                            if (e.key === "Escape" && userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                                userDropdownBtn.setAttribute("aria-expanded", "false");
+                                userDropdownMenu.classList.remove("visible");
+                                userDropdownBtn.focus();
+                            }
+
+                            // Arrow key navigation within dropdown
+                            if (userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                                const items = userDropdownMenu.querySelectorAll(".dropdown-item");
+                                const currentIndex = Array.from(items).indexOf(document.activeElement);
+
+                                if (e.key === "ArrowDown") {
+                                    e.preventDefault();
+                                    const nextIndex = (currentIndex + 1) % items.length;
+                                    items[nextIndex]?.focus();
+                                } else if (e.key === "ArrowUp") {
+                                    e.preventDefault();
+                                    const prevIndex = (currentIndex - 1 + items.length) % items.length;
+                                    items[prevIndex]?.focus();
+                                } else if (e.key === "Home") {
+                                    e.preventDefault();
+                                    items[0]?.focus();
+                                } else if (e.key === "End") {
+                                    e.preventDefault();
+                                    items[items.length - 1]?.focus();
+                                }
+                            }
+                        });
+
+                // Close dropdown when clicking menu items
+                userDropdownMenu.addEventListener("click", (e) => {
+                    const menuItem = e.target.closest(".dropdown-item");
+                    if (menuItem && menuItem.getAttribute("href") && menuItem.getAttribute("href") !== "#") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                    }
+                });
+
+                // Close on Escape key
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                        userDropdownBtn.focus();
+                    }
+                });
+                    }
+
+                    // Initialise from localStorage
+                try {
+                    applyTheme(localStorage.getItem("theme") === "dark");
+                } catch (error) {
+                    console.error("Error reading theme from localStorage:", error);
+                }
+
+                themeBtn.addEventListener("click", () => {
+                    try {
+                        const nowDark = !html.hasAttribute("data-theme");
+                        applyTheme(nowDark);
+                        localStorage.setItem("theme", nowDark ? "dark" : "light");
+                    } catch (error) {
+                        console.error("Error saving theme:", error);
+                    }
+                });
+            } catch (error) {
+                console.error("Theme initialization error:", error);
+            }
+
+            /* =================================================================
+     User Dropdown Toggle
+     ================================================================= */
+            const userDropdownBtn = document.getElementById("user-dropdown-btn");
+            const userDropdownMenu = document.getElementById("user-dropdown-menu");
+
+            if (userDropdownBtn && userDropdownMenu) {
+                function toggleUserDropdown(show) {
+                    const isExpanded = show !== undefined ? show : userDropdownBtn.getAttribute("aria-expanded") !== "true";
+                    userDropdownBtn.setAttribute("aria-expanded", isExpanded);
+                    userDropdownMenu.classList.toggle("visible", isExpanded);
+
+                    // Focus first menu item when opening
+                    if (isExpanded) {
+                        const firstItem = userDropdownMenu.querySelector(".dropdown-item");
+                        if (firstItem) setTimeout(() => firstItem.focus(), 100);
+                    }
+                }
+
+                userDropdownBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    toggleUserDropdown();
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener("click", (e) => {
+                    if (userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                            userDropdownBtn.setAttribute("aria-expanded", "false");
+                            userDropdownMenu.classList.remove("visible");
+                        }
+                    }
+                });
+
+                // Close on Escape key
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                        userDropdownBtn.focus();
+                    }
+
+                    // Arrow key navigation within dropdown
+                    if (userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        const items = userDropdownMenu.querySelectorAll(".dropdown-item");
+                        const currentIndex = Array.from(items).indexOf(document.activeElement);
+
+                        if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            const nextIndex = (currentIndex + 1) % items.length;
+                            items[nextIndex]?.focus();
+                        } else if (e.key === "ArrowUp") {
+                            e.preventDefault();
+                            const prevIndex = (currentIndex - 1 + items.length) % items.length;
+                            items[prevIndex]?.focus();
+                        } else if (e.key === "Home") {
+                            e.preventDefault();
+                            items[0]?.focus();
+                        } else if (e.key === "End") {
+                            e.preventDefault();
+                            items[items.length - 1]?.focus();
+                        }
+                    }
+                });
+
+                // Close dropdown when clicking menu items
+                userDropdownMenu.addEventListener("click", (e) => {
+                    const menuItem = e.target.closest(".dropdown-item");
+                    if (menuItem && menuItem.getAttribute("href") && menuItem.getAttribute("href") !== "#") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                    }
+                });
+            }
+                }
+
+                userDropdownBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    toggleUserDropdown();
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener("click", (e) => {
+                    if (userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                            userDropdownBtn.setAttribute("aria-expanded", "false");
+                            userDropdownMenu.classList.remove("visible");
+                        }
+                    }
+                });
+
+                // Close on Escape key
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && userDropdownBtn.getAttribute("aria-expanded") === "true") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                        userDropdownBtn.focus();
+                    }
+                });
+
+                // Close dropdown when clicking menu items
+                userDropdownMenu.addEventListener("click", (e) => {
+                    const menuItem = e.target.closest(".dropdown-item");
+                    if (menuItem && menuItem.getAttribute("href") && menuItem.getAttribute("href") !== "#") {
+                        userDropdownBtn.setAttribute("aria-expanded", "false");
+                        userDropdownMenu.classList.remove("visible");
+                    }
+                });
+            }
+
+            /* =================================================================
+     Sidebar collapse / expand
+     ================================================================= */
+            const sidebar = document.getElementById("sidebar");
+            const content = document.getElementById("content");
+            const toggleBtn = document.getElementById("sidebar-toggle");
+            const toggleIcon = document.getElementById("toggle-icon");
+            const backdrop = document.getElementById("sidebar-backdrop");
+            const hamburger = document.getElementById("hamburger");
+
+            const COLLAPSED_ICON = `<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>`;
+            const EXPANDED_ICON = `<polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>`;
+
+            function isMobile() {
+                return window.innerWidth < 768;
+            }
+
+            function setCollapsed(collapsed) {
+                if (collapsed) {
+                    sidebar.classList.add("collapsed");
+                    toggleIcon.innerHTML = COLLAPSED_ICON;
+                    toggleBtn.setAttribute("aria-label", "Expand sidebar");
+                } else {
+                    sidebar.classList.remove("collapsed");
+                    toggleIcon.innerHTML = EXPANDED_ICON;
+                    toggleBtn.setAttribute("aria-label", "Collapse sidebar");
+                }
+            }
+
+            // Initialise from localStorage (desktop only) with error handling
+            if (!isMobile()) {
+                try {
+                    const saved = localStorage.getItem("sidebarCollapsed");
+                    // Default: collapsed on 768–1023, expanded on ≥1024
+                    const defaultCollapsed = window.innerWidth < 1024;
+                    setCollapsed(
+                        saved !== null ? saved === "true" : defaultCollapsed,
+                    );
+                } catch (error) {
+                    console.error("Error reading sidebar state from localStorage:", error);
+                    setCollapsed(window.innerWidth < 1024);
+                }
+            }
+
+            toggleBtn.addEventListener("click", () => {
+                if (isMobile()) return; // mobile handled by hamburger + backdrop
+                const nowCollapsed = !sidebar.classList.contains("collapsed");
+                setCollapsed(nowCollapsed);
+                try {
+                    localStorage.setItem("sidebarCollapsed", nowCollapsed);
+                } catch (error) {
+                    console.error("Error saving sidebar state to localStorage:", error);
+                }
+            });
+
+            // Mobile hamburger
+            hamburger.addEventListener("click", () => {
+                const isOpen = sidebar.classList.contains("mobile-open");
+                if (isOpen) {
+                    sidebar.classList.remove("mobile-open");
+                    backdrop.classList.remove("visible");
+                } else {
+                    sidebar.classList.add("mobile-open");
+                    backdrop.classList.add("visible");
+                }
+            });
+
+            backdrop.addEventListener("click", () => {
+                sidebar.classList.remove("mobile-open");
+                backdrop.classList.remove("visible");
+            });
+
+            // Close mobile sidebar on Escape key
+            document.addEventListener("keydown", (e) => {
+                if (
+                    e.key === "Escape" &&
+                    sidebar.classList.contains("mobile-open")
+                ) {
+                    sidebar.classList.remove("mobile-open");
+                    backdrop.classList.remove("visible");
+                }
+            });
+
+            /* =================================================================
+     Resize Handler with Debouncing
+     ================================================================= */
+            let resizeTimeout;
+            window.addEventListener("resize", () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (!isMobile()) {
+                        sidebar.classList.remove("mobile-open");
+                        backdrop.classList.remove("visible");
+                        // Reapply desktop collapsed state
+                        const saved = localStorage.getItem("sidebarCollapsed");
+                        const defaultCollapsed = window.innerWidth < 1024;
+                        setCollapsed(
+                            saved !== null ? saved === "true" : defaultCollapsed,
+                        );
+                    }
+                }, 150); // 150ms debounce
+            });
+
+            /* =================================================================
+     Navigation System
+     ================================================================= */
+            const navItems = document.querySelectorAll(
+                ".nav-item[data-section]",
+            );
+            const sections = document.querySelectorAll(".page-section");
+
+            function activateSection(sectionName) {
+                console.log('Activating section:', sectionName);
+
+                const targetSection = document.getElementById("section-" + sectionName);
+                const targetNav = document.querySelector(
+                    `.nav-item[data-section="${sectionName}"]`
+                );
+
+                if (!targetSection) {
+                    console.warn(`Section "${sectionName}" not found`);
+                    return;
+                }
+
+                // Hide all sections and show target (optimized with for-of)
+                for (const section of sections) {
+                    section.classList.remove("active");
+                }
+                targetSection.classList.add("active");
+
+                // Update nav active state (optimized with for-of)
+                for (const item of navItems) {
+                    item.classList.remove("active");
+                    item.removeAttribute("aria-current");
+                }
+
+                if (targetNav) {
+                    targetNav.classList.add("active");
+                    targetNav.setAttribute("aria-current", "page");
+                }
+
+                // Update URL hash
+                try {
+                    history.pushState(null, null, "#section-" + sectionName);
+                } catch (e) {
+                    console.warn("History API error:", e);
+                }
+
+                // Close mobile sidebar
+                try {
+                    if (typeof isMobile === 'function' && isMobile()) {
+                        sidebar.classList.remove("mobile-open");
+                        backdrop.classList.remove("visible");
+                    }
+                } catch (e) {
+                    console.warn("Mobile sidebar error:", e);
+                }
+            }
+
+            // Nav item click handlers
+            for (const item of navItems) {
+                item.addEventListener("click", () => {
+                    console.log('Nav item clicked:', item.dataset.section);
+                    activateSection(item.dataset.section);
+                });
+            }
+
+            /* =================================================================
+     Dashboard Card Navigation
+     ================================================================= */
+            const cardLinks = document.querySelectorAll(".card-link");
+
+            for (const link of cardLinks) {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const sectionName = link.getAttribute("href").replace("#section-", "");
+                    activateSection(sectionName);
+                });
+            }
+
+            /* =================================================================
+     User Dropdown Navigation
+     ================================================================= */
+            const dropdownItems = document.querySelectorAll(".dropdown-item");
+
+            for (const item of dropdownItems) {
+                item.addEventListener("click", (e) => {
+                    const href = item.getAttribute("href");
+                    if (href && href !== "#") {
+                        e.preventDefault();
+                        const sectionName = href.replace("#section-", "");
+                        activateSection(sectionName);
+                    }
+                });
+            }
+
+            /* =================================================================
+     Browser History Support (Back/Forward Buttons)
+     ================================================================= */
+            window.addEventListener("hashchange", () => {
+                const sectionName = window.location.hash.replace("#section-", "");
+                if (sectionName) {
+                    activateSection(sectionName);
+                }
+            });
+
+            // Handle initial hash on page load
+            if (window.location.hash) {
+                const sectionName = window.location.hash.replace("#section-", "");
+                activateSection(sectionName);
+            }
+
+            /* =================================================================
+     Recent Activity Table Pagination
+     ================================================================= */
+            const tableRows = document.querySelectorAll("#section-dashboard tbody tr");
+            const pagination = document.querySelector(".pagination");
+            const paginationNumbers = pagination ? pagination.querySelectorAll(".pagination-number") : [];
+            const prevBtn = pagination ? pagination.querySelector("#pagination-prev") : null;
+            const nextBtn = pagination ? pagination.querySelector("#pagination-next") : null;
+            const totalPages = 3;
+            let currentPage = 1;
+
+            function showPage(page) {
+                if (!tableRows.length) return;
+
+                currentPage = page;
+                const validPage = Math.max(1, Math.min(page, totalPages));
+
+                // Show/hide rows based on page (optimized with for-of)
+                for (const row of tableRows) {
+                    const rowPage = row.dataset.page || "1";
+                    row.style.display = parseInt(rowPage) === validPage ? "" : "none";
+                }
+
+                // Update pagination number states (cached queries)
+                for (const btn of paginationNumbers) {
+                    const btnPage = parseInt(btn.dataset.page);
+                    btn.classList.toggle("active", btnPage === validPage);
+                }
+
+                // Update prev/next button states (cached queries)
+                if (prevBtn) prevBtn.disabled = validPage === 1;
+                if (nextBtn) nextBtn.disabled = validPage === totalPages;
+            }
+
+            // Initialize pagination
+            if (tableRows.length && pagination) {
+                showPage(1);
+
+                // Event delegation for pagination
+                pagination.addEventListener("click", (e) => {
+                    const target = e.target;
+
+                    if (target.classList.contains("pagination-number")) {
+                        showPage(parseInt(target.dataset.page));
+                    } else if ((target.id === "pagination-prev" || target.closest("#pagination-prev")) && prevBtn) {
+                        if (currentPage > 1) showPage(currentPage - 1);
+                    } else if ((target.id === "pagination-next" || target.closest("#pagination-next")) && nextBtn) {
+                        if (currentPage < totalPages) showPage(currentPage + 1);
+                    }
+                });
+            }
         </script>
     </body>
 </html>

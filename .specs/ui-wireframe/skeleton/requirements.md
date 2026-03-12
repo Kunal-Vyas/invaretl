@@ -44,9 +44,10 @@ file must open directly in a browser.
 - **Left section:** Brand logo / wordmark (`InvarETL`).
 - **Center section:** (empty — reserved for future global search bar).
 - **Right section:**
-  - User avatar / initials badge (placeholder circle with initials `KV`).
+  - User avatar / initials dropdown button (placeholder circle with initials `KV`). Clicking toggles dropdown menu.
   - Light/Dark mode toggle — icon button (sun ↔ moon). Clicking it switches
     the theme by toggling a `data-theme="dark"` attribute on `<html>`.
+- **User Dropdown Menu:** Contains Profile, Account, and Logout items with icons.
 - The nav bar must always be visible; content below scrolls independently.
 
 ### 3.2 Collapsible Left Sidebar / Drawer
@@ -59,7 +60,7 @@ file must open directly in a browser.
   3. Data Sources
   4. Pipelines
   5. Transforms
-- Settings is pinned to the **bottom** of the sidebar, visually separated from the main nav items.
+- Settings, Profile, and Account are accessible via the user dropdown menu in the top navigation bar.
 - When collapsed, labels are hidden; icons remain visible.
 - Active item is highlighted with the accent colour left border + tinted background.
 - Sidebar collapse/expand state is persisted in `localStorage`.
@@ -82,12 +83,14 @@ handlers on nav items.
 - **Page title:** "Dashboard"
 - **Summary cards row — 7 cards:**
   - Projects, Data Sources, Pipelines, Transforms, Executions, Amount Spent, Errors Today.
-  - Each card: icon placeholder (SVG outline), large number `--`, label.
+  - Each card: icon placeholder (SVG outline), large number with actual values, label.
   - **Executions** card (pipeline executions) appears immediately after Transforms and before Amount Spent.
   - **Amount Spent** card appears immediately before the Errors Today card.
 - **Recent Activity table:**
-  - Columns: Name, Status, Last Run, Duration.
-  - 3 placeholder rows with static grey skeleton bars.
+  - Columns: Project, Status, Last Run, Duration, Cost.
+  - 15 rows with real data across 3 pages (5 rows per page).
+  - Status badges: Running (green), Idle (grey), Error (red).
+  - Pagination controls: Previous/Next buttons and page number buttons (1, 2, 3).
 
 ### 4.1 Projects
 - **Page title:** "Projects"
@@ -115,9 +118,27 @@ handlers on nav items.
 
 ### 4.5 Settings
 - **Page title:** "Settings"
+- Accessible via user dropdown menu in top navigation.
 - **Two grouped form sections:**
   1. General — fields: Application Name, Time Zone (both `disabled`).
   2. Security — fields: API Key (masked `••••••••`), Session Timeout (both `disabled`).
+- "Save Changes" button (visible but `disabled` — skeleton state).
+
+### 4.6 Profile
+- **Page title:** "Profile"
+- Accessible via user dropdown menu in top navigation.
+- **Two grouped form sections:**
+  1. Personal Information — fields: Full Name, Email Address, Company, Role (all `disabled`).
+  2. Profile Picture — avatar preview with initials, file upload info, "Upload New Picture" and "Remove Picture" buttons (both `disabled`).
+- "Save Changes" button (visible but `disabled` — skeleton state).
+
+### 4.7 Account
+- **Page title:** "Account Settings"
+- Accessible via user dropdown menu in top navigation.
+- **Three grouped form sections:**
+  1. Account Details — fields: Account ID, Plan, Status, Created (all `disabled`).
+  2. Billing Information — fields: Billing Email, Billing Address, Payment Method (all `disabled`).
+  3. Security — fields: Last Password Change, Two-Factor Authentication, Active Sessions (all `disabled`).
 - "Save Changes" button (visible but `disabled` — skeleton state).
 
 ---
@@ -129,7 +150,11 @@ handlers on nav items.
 | Sidebar collapse / expand  | Toggle CSS class; adjust main area margin; persist in `localStorage`   |
 | Theme toggle               | Toggle `data-theme="dark"` on `<html>`; persist in `localStorage`      |
 | Nav item selection         | Add active class to clicked item; show corresponding content section   |
+| User dropdown toggle       | Show/hide dropdown menu; close on click outside or Escape key         |
+| Dashboard card navigation | Click card links to navigate to corresponding section                 |
+| Table pagination           | Switch between pages; update visibility of rows based on `data-page`   |
 | Mobile hamburger           | Show/hide sidebar overlay on screens narrower than `768px`             |
+| Browser history           | Support back/forward navigation via URL hash                           |
 
 ---
 
@@ -147,11 +172,26 @@ handlers on nav items.
 - Semantic HTML elements: `<header>`, `<nav>`, `<aside>`, `<main>`.
 - All interactive elements keyboard-focusable with a visible focus ring.
 - `aria-label` attributes on icon-only buttons (collapse toggle, theme toggle, hamburger).
+- User dropdown uses `aria-expanded`, `aria-haspopup`, and `role="menu"` attributes.
+- Navigation items use `aria-current="page"` to indicate active section.
+- Pagination buttons use `aria-label` attributes (e.g., "Previous page", "Page 1", "Next page").
 - Sufficient colour contrast in both light and dark modes (WCAG AA target).
+- Skip link for keyboard users to jump directly to main content.
 
 ---
 
-## 8. Deliverable
+## 8. Additional Features (Beyond Original Spec)
+- **User Dropdown Menu:** Expandable menu in top navigation with Profile, Account, and Logout options.
+- **Dashboard Table Pagination:** Full pagination system with 3 pages of data, prev/next buttons, and page number indicators.
+- **Profile Page:** User profile management with personal information and profile picture sections.
+- **Account Page:** Account settings with details, billing information, and security settings.
+- **Browser History Support:** Back/forward navigation works correctly using URL hash fragments.
+- **Card Navigation:** Dashboard cards are clickable and navigate to their respective sections.
+- **Enhanced Error Handling:** Try-catch blocks for localStorage operations and console logging for debugging.
+
+---
+
+## 9. Deliverable
 - **File:** `.specs/ui-wireframe/skeleton/index.html`
 - Must render without any server or build step — open directly via `file://`.
 - No external network requests (no CDN fonts, no remote assets).
